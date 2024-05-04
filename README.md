@@ -1,8 +1,8 @@
-# Template React + Django
+# TCC
 
-React-Vite App (TS) with Django Template (Just README)
+TCC
 
-## Dependencies
+## Dependências
 
 - Python v3.12.3
 - pip v24.0
@@ -19,7 +19,7 @@ Certifique-se de que está usando a versão correta do `Python`.
 
 Veja as dependências no arquivo `./backend/requirements.txt`.
 
-#### Instruções:
+#### Instruções
 
 - Crie um ambiente virtual para desenvolvimento, conforme os passos abaixo:
 
@@ -55,7 +55,7 @@ Certifique-se de que está usando o `Prettier` como formatador oficial para o Vs
 
 Veja as dependências no arquivo `./frontend/package.json`.
 
-#### Instruções:
+#### Instruções
 
 - Instale os pacotes necessários e os atualize para a última versão (se tiver algum problema, rode `npm i` antes do update, mas geralmente não é necessário):
 
