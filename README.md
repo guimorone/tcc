@@ -4,10 +4,10 @@ React-Vite App (TS) with Django Template (Just README)
 
 ## Dependencies
 
-- Python vX.X.X
-- Poetry vX.X.X
-- Node.js v18.18.0
-- npm v10.2.0
+- Python v3.12.3
+- pip v24.0
+- Node.js v22.1.0
+- npm v10.7.0
 
 ## Desenvolvimento local
 
@@ -17,7 +17,7 @@ Certifique-se de que está usando a versão correta do `Python`.
 
 #### Dependências
 
-Veja as dependências no arquivo `./backend/pyproject.toml`.
+Veja as dependências no arquivo `./backend/requirements.txt`.
 
 #### Instruções:
 
@@ -36,47 +36,16 @@ cd backend && pyenv virtualenv X.X.X venv-name && pyenv activate venv-name
 - Instale os pacotes necessários e os atualize para a última versão (se tiver algum problema, rode `poetry install` antes do update, mas geralmente não é necessário):
 
 ```sh
-  pip install "poetry==X.X.X" && poetry update
-```
-
-- Atualize o arquivo `.env`.
-
-- Se for necessário atualizar sua pasta `migrations`, rode o comando abaixo:
-
-```sh
-python manage.py makemigrations --merge --no-input
-python manage.py migrate --no-input
+  pip install -r requirements.txt
 ```
 
 - Em seguida, digite a linha de comando abaixo no terminal:
 
 ```sh
-  python manage.py runserver
+  python app.py
 ```
 
-- Pronto, o backend irá rodar na URL `http://localhost:8000`.
-
-Sempre que fizer uma alteração relacionado a banco de dados (modelos, serializadores, etc), execute o comando abaixo:
-
-```sh
-  python manage.py makemigrations && python manage.py migrate
-```
-
-#### Criando banco local:
-
-- Atualizar o arquivo `.env` com as credenciais desejadas (variáveis de ambiente que começam com `DB_`).
-
-- Subir o banco:
-
-```sh
-docker compose up -d
-```
-
-- Fechar o banco:
-
-```sh
-docker compose down
-```
+Pronto, o backend irá rodar na URL `http://localhost:8000`.
 
 ### Front-End
 
