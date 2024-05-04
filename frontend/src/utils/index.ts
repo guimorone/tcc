@@ -1,6 +1,5 @@
 import { AxiosError } from 'axios';
-import InputMask from 'comigo-tech-react-input-mask';
-import type { FormEvent, ComponentProps } from 'react';
+import type { FormEvent } from 'react';
 import type { AxiosResponse } from 'axios';
 import type { DataItem, Sizes } from '../@types';
 
@@ -311,46 +310,4 @@ export function setCharAt(str: string, index: number, chr: string): string {
 	return str.substring(0, index) + chr + str.substring(index + 1);
 }
 
-export const beforeMaskedPhoneNumberStateChange: ComponentProps<typeof InputMask>['beforeMaskedStateChange'] = ({
-	currentState,
-	nextState,
-}) => {
-	let { value } = nextState;
 
-	if (value?.length === 18 && currentState?.value !== value) {
-		value = setCharAt(value, 14, value.charAt(13));
-		value = setCharAt(value, 13, '-');
-	}
-
-	return { ...nextState, value };
-};
-
-/* 
-export const beforeMaskedPhoneNumberStateChange: ComponentProps<typeof InputMask>['beforeMaskedStateChange'] = ({
-	currentState,
-	nextState,
-}) => {
-	let { value } = nextState;
-
-	if (value?.length === 14 && currentState?.value !== value) {
-		value = setCharAt(value, 10, value.charAt(9));
-		value = setCharAt(value, 9, '-');
-	}
-
-	return { ...nextState, value };
-};
-
-export const beforeMaskedPhoneNumberStateChangeForForms: ComponentProps<
-	typeof InputMask
->['beforeMaskedStateChange'] = ({ nextState }) => {
-	let { value } = nextState;
-
-	if (value?.length === 14) {
-		value = setCharAt(value, 10, value.charAt(9));
-		value = setCharAt(value, 9, '-');
-	}
-
-	return { ...nextState, value };
-};
-
-*/

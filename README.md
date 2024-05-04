@@ -85,3 +85,8 @@ ou, para ajeitar os erros de formatação também:
 ```sh
   npm run lint-fix
 ```
+
+## Credenciais
+
+- O arquivo `frontend/.env` pode ser atualizado com as informações presentes em `frontend/.env.default`.
+- O arquivo `backend/.env` precisa de uma credencial do google, entre em contato comigo se precisar.
