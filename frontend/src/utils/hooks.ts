@@ -6,7 +6,7 @@ export function useTypedOutletContext(): ContextType {
 	return useOutletContext<ContextType>();
 }
 
-export function useDocumentTitle(prevailOnUnmount = false): [string, Dispatch<SetStateAction<string>>] {
+export function useDocumentTitle(prevailOnUnmount = false): Dispatch<SetStateAction<string>> {
 	const [title, setTitle] = useState<string>(document.title);
 	const defaultTitle = useRef<string>(document.title);
 
@@ -21,5 +21,5 @@ export function useDocumentTitle(prevailOnUnmount = false): [string, Dispatch<Se
 		[]
 	);
 
-	return [title, setTitle];
+	return setTitle;
 }
