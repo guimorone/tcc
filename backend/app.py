@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)
 api = Api(app)
 
-api.add_resource(Check, '/check', methods=['GET'])
+api.add_resource(Check, '/check', methods=['POST'])
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)

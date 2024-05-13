@@ -12,30 +12,28 @@ const Navbar: FC = () => {
 	];
 
 	return (
-		<nav className="border-b border-gray-200 bg-white">
-			<nav className="border-b border-gray-200 bg-white">
-				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-					<div className="flex h-16 justify-center items-center">
-						<div className="-my-px ml-6 flex space-x-8 items-center justify-center">
-							{navigation.map(({ label, path, current }, index) => (
-								<Link
-									key={`navbar-link-${index}`}
-									to={path}
-									className={classNames(
-										current
-											? 'border-indigo-500 text-gray-900'
-											: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-										'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium'
-									)}
-									aria-current={current ? 'page' : undefined}
-								>
-									{label}
-								</Link>
-							))}
-						</div>
+		<nav className="sticky z-50 inset-x-0 top-0 border-b border-gray-200 bg-white backdrop-blur-md bg-opacity-80">
+			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<div className="flex h-16 justify-center items-center">
+					<div className="-my-px ml-6 flex space-x-8 items-center justify-center">
+						{navigation.map(({ label, path, current }, index) => (
+							<Link
+								key={`navbar-link-${index}`}
+								to={path}
+								className={classNames(
+									current
+										? 'border-indigo-500 text-gray-900'
+										: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+									'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium'
+								)}
+								aria-current={current ? 'page' : undefined}
+							>
+								{label}
+							</Link>
+						))}
 					</div>
 				</div>
-			</nav>
+			</div>
 		</nav>
 	);
 };
