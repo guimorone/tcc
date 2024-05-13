@@ -6,11 +6,11 @@ from google.cloud import vision
 
 
 class Check(Resource):
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
         self.__google_client: vision.ImageAnnotatorClient = vision.ImageAnnotatorClient(
             credentials=json.loads(os.getenv('GOOGLE_CREDENTIALS'))
         )
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
     def get(self):
         try:

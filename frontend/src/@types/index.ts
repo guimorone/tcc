@@ -36,3 +36,5 @@ export type IconType =
 	| ((props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) => JSX.Element);
 
 export type ContextType = NonNullable<unknown>;
+export type LanguagesKeys = 'pt' | 'en' | 'es';
+export type IgnoredWordsType = { [language in LanguagesKeys]?: string[] };

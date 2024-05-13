@@ -310,4 +310,16 @@ export function setCharAt(str: string, index: number, chr: string): string {
 	return str.substring(0, index) + chr + str.substring(index + 1);
 }
 
+export const getLocalStorageItem = (key: string): any => {
+	const item = localStorage.getItem(key);
 
+	if (!item) return null;
+
+	try {
+		return JSON.parse(item);
+	} catch (error) {
+		return item;
+	}
+};
+
+export const setLocalStorageItem = (key: string, value: any): void => localStorage.setItem(key, JSON.stringify(value));

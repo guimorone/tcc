@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type Dispatch, type SetStateAction } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import type { Dispatch, SetStateAction } from 'react';
 import type { ContextType } from '../@types';
 
 export function useTypedOutletContext(): ContextType {
