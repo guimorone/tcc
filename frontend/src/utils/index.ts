@@ -1,6 +1,7 @@
-import { AxiosError } from 'axios';
+import { AxiosError, type AxiosResponse } from 'axios';
+import { toast, type ToastPosition } from 'react-toastify';
+import * as paths from '../constants/paths';
 import type { FormEvent } from 'react';
-import type { AxiosResponse } from 'axios';
 import type { DataItem, Sizes } from '../@types';
 
 export function formatNumber(
@@ -323,3 +324,55 @@ export const getLocalStorageItem = (key: string): any => {
 };
 
 export const setLocalStorageItem = (key: string, value: any): void => localStorage.setItem(key, JSON.stringify(value));
+
+export const showSuccessToast = (message: string, position?: ToastPosition): void => {
+	toast.success(message, {
+		position: `${position ? position : 'top-right'}`,
+		autoClose: 3000,
+		hideProgressBar: false,
+		closeOnClick: true,
+		pauseOnHover: true,
+		draggable: true,
+		progress: undefined,
+		theme: 'colored',
+	});
+};
+
+export const showErrorToast = (message: string, position?: ToastPosition): void => {
+	toast.error(message, {
+		position: `${position ? position : 'top-right'}`,
+		autoClose: 5000,
+		hideProgressBar: false,
+		closeOnClick: true,
+		pauseOnHover: true,
+		draggable: true,
+		progress: undefined,
+		theme: 'colored',
+	});
+};
+
+export const showWarningToast = (message: string, position?: ToastPosition) => {
+	toast.warning(message, {
+		position: `${position ? position : 'top-right'}`,
+		autoClose: 5000,
+		hideProgressBar: false,
+		closeOnClick: true,
+		pauseOnHover: true,
+		draggable: true,
+		progress: undefined,
+		theme: 'colored',
+	});
+};
+
+export const getPageTitle = (page: string): string => {
+	switch (page) {
+		case paths.HOME:
+			return 'Home';
+		case paths.IGNORE_FILE:
+			return 'Ignore File';
+		case paths.HISTORY:
+			return 'History';
+		default:
+			return page;
+	}
+};

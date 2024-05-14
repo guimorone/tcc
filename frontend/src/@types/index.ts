@@ -43,9 +43,19 @@ export type IconType =
 	  >
 	| ((props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) => JSX.Element);
 
-export type LanguagesKeys = 'pt' | 'en' | 'es';
+export type LanguagesKeys = 'en' | 'es' | 'pt';
 export type IgnoreWordsType = { [language in LanguagesKeys]?: string[] };
 export type ContextType = {
+	currentPage: string;
 	ignoreWords: IgnoreWordsType;
 	setIgnoreWords: Dispatch<SetStateAction<IgnoreWordsType>>;
 };
+
+export type ResultType = {
+	id: string;
+	language: LanguagesKeys;
+	time: string;
+	words: string[];
+};
+
+export type HistoryType = { [key: ResultType['id']]: ResultType };

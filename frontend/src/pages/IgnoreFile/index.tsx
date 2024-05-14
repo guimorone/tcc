@@ -16,7 +16,7 @@ const IgnoreFile: FC = () => {
 			<button
 				disabled={checkIfObjectIsEmpty(ignoreWords)}
 				onClick={clearFile}
-				className="flex items-center gap-x-2 rounded bg-red-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:bg-gray-200 disabled:text-gray-600 disabled:hover:cursor-not-allowed"
+				className="inline-flex items-center gap-x-2 rounded bg-red-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:bg-gray-200 disabled:text-gray-600 disabled:hover:cursor-not-allowed"
 			>
 				<TrashIcon className="h-4 w-auto" aria-hidden="true" />
 				<span>Clear File</span>
@@ -82,13 +82,13 @@ const IgnoreFile: FC = () => {
 							if (
 								!(language in newWord) ||
 								!newWord[language] ||
-								ignoreWords[language as LanguagesKeys]?.includes(newWord[language].trim())
+								ignoreWords[language as LanguagesKeys]?.includes(newWord[language].trim().toLowerCase())
 							)
 								return;
 
 							setIgnoreWords(prevState => ({
 								...prevState,
-								[language]: [...(prevState[language as LanguagesKeys] || []), newWord[language].trim()],
+								[language]: [...(prevState[language as LanguagesKeys] || []), newWord[language].trim().toLowerCase()],
 							}));
 
 							event.currentTarget.reset();

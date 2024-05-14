@@ -1,10 +1,15 @@
 import os
+import re
 import json
 import traceback
+from datetime import datetime
+from uuid import uuid4
 from typing import Dict, List
 from flask_restful import Resource, request
 from google.cloud import vision
 from google.oauth2 import service_account
+from PyMultiDictionary import MultiDictionary
+from utils.misc import ignore_word
 
 
 class Check(Resource):
@@ -26,18 +31,31 @@ class Check(Resource):
 
             ignore_words_dict: Dict[str, List[str]] = json.loads(request.form.get('ignore_words', {}))
             ignore_words = ignore_words_dict.get(language, [])
+
             content = screenshot.read()
             image = vision.Image(content=content)
             response = self.__google_client.text_detection(image=image)
             texts = response.text_annotations
-            print("Texts:")
 
+            dictionary = MultiDictionary()
+            incorrect_words = []
+            bounds = {}
             for text in texts:
-                print(f'\n"{text.description}"')
+                word = text.description.strip().lower()
+                if word in ignore_words or ignore_word(word):
+                    continue
 
-                vertices = [f"({vertex.x},{vertex.y})" for vertex in text.bounding_poly.vertices]
+                word = re.sub(r'[^\w\s$]|[\dº]', '', word)
+                if not word or word in incorrect_words:
+                    continue
 
-                print("bounds: {}".format(",".join(vertices)))
+                mean, _, _ = dictionary.meaning(language, word)
+                if mean and len(mean) > 0:
+                    # Word is correct
+                    continue
+
+                incorrect_words.append(word)
+                bounds[word] = [(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices]
 
             if response.error.message:
                 raise Exception(
@@ -45,7 +63,8 @@ class Check(Resource):
                     "https://cloud.google.com/apis/design/errors".format(response.error.message)
                 )
 
-            return {'message': 'success'}, 200
+            now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+            return {'id': str(uuid4()), 'language': language, 'words': incorrect_words, 'time': now}, 200
         except:
             traceback.print_exc()
-            return {'message': 'error'}, 500
+            return {'message': 'Internal Server Error'}, 500

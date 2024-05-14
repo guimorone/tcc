@@ -1,13 +1,18 @@
 import { useState, useEffect, type FC, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Spinner } from 'flowbite-react';
 import { useMutation } from '@tanstack/react-query';
 import { PhotoIcon, PaperAirplaneIcon } from '@heroicons/react/20/solid';
 import Select from '../../components/Select';
 import { httpRequest } from '../../services/api';
-import { classNames } from '../../utils';
+import { classNames, getLocalStorageItem, setLocalStorageItem, showErrorToast, showSuccessToast } from '../../utils';
 import { useTypedOutletContext } from '../../utils/hooks';
 import { LANGUAGES } from '../../constants';
+import { HISTORY } from '../../constants/paths';
+import type { ResultType, HistoryType } from '../../@types';
 
 const Home: FC = () => {
+	const navigate = useNavigate();
 	const { ignoreWords } = useTypedOutletContext();
 	const [fileFormData, setFileFormData] = useState<FormData | null>(null);
 	const [file, setFile] = useState<File | null>(null);
@@ -16,7 +21,7 @@ const Home: FC = () => {
 		value: 'pt',
 		label: LANGUAGES['pt'],
 	});
-	const sendImageMutation = useMutation({
+	const sendImageMutation = useMutation<ResultType>({
 		mutationFn: async () => {
 			const response = await httpRequest('check', 'POST', {
 				data: fileFormData,
@@ -41,6 +46,23 @@ const Home: FC = () => {
 		return () => URL.revokeObjectURL(objectUrl);
 	}, [file]);
 
+	useEffect(() => {
+		if (sendImageMutation.isSuccess && sendImageMutation.data) {
+			const prevHistory: HistoryType | null = getLocalStorageItem('history');
+			if (!prevHistory) setLocalStorageItem('history', { [sendImageMutation.data.id]: sendImageMutation.data });
+			else setLocalStorageItem('history', { ...prevHistory, [sendImageMutation.data.id]: sendImageMutation.data });
+			showSuccessToast('Image processed successfully\nRedirecting to results...');
+			setTimeout(navigate, 3000, `/${HISTORY}/${sendImageMutation.data.id}`);
+		} else if (sendImageMutation.isError)
+			showErrorToast((sendImageMutation.error as any)?.response?.data?.message || 'Error processing the image');
+	}, [
+		navigate,
+		sendImageMutation.isSuccess,
+		sendImageMutation.data,
+		sendImageMutation.isError,
+		sendImageMutation.error,
+	]);
+
 	const handleSendImage = (): void => {
 		if (!fileFormData || sendImageMutation.isPending) return;
 
@@ -53,10 +75,29 @@ const Home: FC = () => {
 	return (
 		<div className="flex flex-col gap-y-8 items-center justify-center text-center">
 			{file && (
-				<div className="space-y-2">
+				<div className="space-y-4">
 					<h3 className="text-base font-semibold leading-7">Image Preview</h3>
-					{preview && <img src={preview} className="bg-gray-200 p-4 rounded-md shadow-sm w-full" />}
 					<p className="text-sm text-gray-700">{file.name}</p>
+					{preview && (
+						<div className="relative">
+							<img
+								src={preview}
+								className={classNames(
+									sendImageMutation.isPending && 'opacity-50',
+									'bg-gray-200 p-4 rounded-md shadow-sm h-full w-full'
+								)}
+							/>
+							{sendImageMutation.isPending && (
+								<div className="absolute inset-x-0 top-2 z-10 space-y-4 bg-white/10 w-fit  m-auto p-4 backdrop-blur-sm">
+									<Spinner size="lg" />
+									<p className="motion-safe:animate-pulse text-base text-gray-900">The image is being processed</p>
+									<p className="motion-safe:animate-pulse text-sm text-gray-700 font-medium">
+										This may take a while...
+									</p>
+								</div>
+							)}
+						</div>
+					)}
 				</div>
 			)}
 			<div className="flex items-start justify-center gap-x-12">
@@ -68,6 +109,7 @@ const Home: FC = () => {
 					}))}
 					selectedOption={languageSelected}
 					setSelectedOption={setLanguageSelected}
+					disabled={sendImageMutation.isPending}
 				/>
 				<div>
 					<input

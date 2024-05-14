@@ -5,10 +5,12 @@ import type { FC } from 'react';
 
 const Navbar: FC = () => {
 	const { pathname } = useLocation();
+	const currentPage = pathname.split('/')[1];
 
 	const navigation = [
-		{ label: 'Home', path: paths.HOME, current: pathname === `/${paths.HOME}` },
-		{ label: 'Ignore File', path: paths.IGNORE_FILE, current: pathname === `/${paths.IGNORE_FILE}` },
+		{ label: 'Home', path: paths.HOME, current: currentPage === paths.HOME },
+		{ label: 'Ignore File', path: paths.IGNORE_FILE, current: currentPage === paths.IGNORE_FILE },
+		{ label: 'History', path: paths.HISTORY, current: currentPage === paths.HISTORY },
 	];
 
 	return (
