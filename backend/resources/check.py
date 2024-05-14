@@ -81,15 +81,17 @@ class Check(Resource):
                     continue
 
                 word = re.sub(r'[^\w\s$]|[\dº]', '', word)
-                if not word or word in incorrect_words:
+                if not word:
                     continue
 
-                mean, _, _ = dictionary.meaning(language, word)
-                if mean and len(mean) > 0:
+                # Classification = [Noun, Verb, Adjective, etc].
+                classification, _, _ = dictionary.meaning(language, word)
+                if classification and len(classification) > 0:
                     # Word is correct
                     continue
 
-                incorrect_words.append(word)
+                if word not in incorrect_words:
+                    incorrect_words.append(word)
                 bounds[word] = [(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices]
 
             drawn_image = self.draw_missing_words(Image.open(screenshot), bounds)
