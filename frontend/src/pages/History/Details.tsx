@@ -16,7 +16,7 @@ const Details: FC<DetailsProps> = ({ id, details }) => {
 	return (
 		<div className="space-y-4">
 			<h2 className="text-xs text-gray-700">
-				{LANGUAGES[language]} ({language}) | {id}
+				{LANGUAGES[language]} | {id}
 			</h2>
 			{!details.words || !details.words.length ? (
 				<p className="text-base text-red-600">No incorrect words found.</p>

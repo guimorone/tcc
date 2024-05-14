@@ -1,27 +1,28 @@
 import { Link } from 'react-router-dom';
+import { DocumentMagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { TrashIcon } from '@heroicons/react/20/solid';
-import { checkIfObjectIsEmpty, setLocalStorageItem } from '../../utils';
+import { checkIfObjectIsEmpty } from '../../utils';
 import { LANGUAGES } from '../../constants';
 import { HISTORY } from '../../constants/paths';
-import type { FC } from 'react';
+import type { FC, Dispatch, SetStateAction } from 'react';
 import type { HistoryType } from '../../@types';
 
 interface TableProps {
 	history: HistoryType;
+	setHistory: Dispatch<SetStateAction<HistoryType>>;
 }
 
-const Table: FC<TableProps> = ({ history }) => {
-	const clearHistory = (): void => {
-		setLocalStorageItem('history', {});
-		window.location.reload();
-	};
+const Table: FC<TableProps> = ({ history, setHistory }) => {
+	const clearHistory = (): void => setHistory({});
 
 	return (
-		<>
+		<div className="space-y-8">
 			<div className="sm:flex sm:items-center">
 				<div className="sm:flex-auto">
 					<h1 className="text-base font-semibold leading-6 text-gray-900">Results</h1>
-					<p className="mt-2 text-sm text-gray-700">Check out the results of the images you have processed</p>
+					<p className="mt-2 text-sm text-gray-700">
+						Check out the records of the images you have processed on this device
+					</p>
 				</div>
 				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
 					<button
@@ -34,7 +35,7 @@ const Table: FC<TableProps> = ({ history }) => {
 					</button>
 				</div>
 			</div>
-			<div className="mt-8 flow-root">
+			<div className="flow-root">
 				<div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
 					<div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
 						<table className="min-w-full divide-y divide-gray-300">
@@ -49,8 +50,11 @@ const Table: FC<TableProps> = ({ history }) => {
 									<th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
 										Time
 									</th>
+									<th scope="col" className="relative py-3.5 pl-3 pr-4">
+										<span className="sr-only">Check result</span>
+									</th>
 									<th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
-										<span className="sr-only">Link</span>
+										<span className="sr-only">Delete record</span>
 									</th>
 								</tr>
 							</thead>
@@ -58,14 +62,37 @@ const Table: FC<TableProps> = ({ history }) => {
 								{Object.values(history)?.map(({ id, language, time }, index) => (
 									<tr key={`table-element-${id}-${index}`}>
 										<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{id}</td>
-										<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-											{LANGUAGES[language]} ({language})
-										</td>
+										<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{LANGUAGES[language]}</td>
 										<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{time}</td>
-										<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-											<Link to={`/${HISTORY}/${id}`} className="text-indigo-600 hover:text-indigo-900">
-												Check results<span className="sr-only">, {id}</span>
+										<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right">
+											<Link
+												to={`/${HISTORY}/${id}`}
+												target="_blank"
+												className="inline-flex items-center gap-x-2 text-indigo-600 hover:text-indigo-900"
+											>
+												<DocumentMagnifyingGlassIcon className="h-4 w-auto" aria-hidden="true" />
+												<span className="text-sm font-medium">
+													Check result<span className="sr-only">, {id}</span>
+												</span>
 											</Link>
+										</td>
+										<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right sm:pr-0">
+											<button
+												onClick={() =>
+													setHistory(prevState => {
+														const newState = { ...prevState };
+														delete newState[id];
+
+														return newState;
+													})
+												}
+												className="inline-flex items-center gap-x-2 text-red-600 hover:text-red-900"
+											>
+												<TrashIcon className="h-4 w-auto" aria-hidden="true" />
+												<span className="text-sm font-medium">
+													Delete record<span className="sr-only">, {id}</span>
+												</span>
+											</button>
 										</td>
 									</tr>
 								))}
@@ -74,7 +101,7 @@ const Table: FC<TableProps> = ({ history }) => {
 					</div>
 				</div>
 			</div>
-		</>
+		</div>
 	);
 };
 

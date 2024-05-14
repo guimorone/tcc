@@ -45,17 +45,17 @@ export type IconType =
 
 export type LanguagesKeys = 'en' | 'es' | 'pt';
 export type IgnoreWordsType = { [language in LanguagesKeys]?: string[] };
-export type ContextType = {
-	currentPage: string;
-	ignoreWords: IgnoreWordsType;
-	setIgnoreWords: Dispatch<SetStateAction<IgnoreWordsType>>;
-};
-
 export type ResultType = {
 	id: string;
 	language: LanguagesKeys;
 	time: string;
 	words: string[];
 };
-
 export type HistoryType = { [key: ResultType['id']]: ResultType };
+export type ContextType = {
+	currentPage: string;
+	ignoreWords: IgnoreWordsType;
+	setIgnoreWords: Dispatch<SetStateAction<IgnoreWordsType>>;
+	history: HistoryType;
+	setHistory: Dispatch<SetStateAction<HistoryType>>;
+};
