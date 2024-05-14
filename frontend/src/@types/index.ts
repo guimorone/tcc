@@ -43,13 +43,34 @@ export type IconType =
 	  >
 	| ((props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) => JSX.Element);
 
-export type LanguagesKeys = 'en' | 'es' | 'pt';
+export type LanguagesKeys =
+	| 'bn'
+	| 'de'
+	| 'en'
+	| 'es'
+	| 'fr'
+	| 'hi'
+	| 'it'
+	| 'ja'
+	| 'jv'
+	| 'ko'
+	| 'mr'
+	| 'ms'
+	| 'pl'
+	| 'pt'
+	| 'ro'
+	| 'ru'
+	| 'ta'
+	| 'tr'
+	| 'uk'
+	| 'zh';
 export type IgnoreWordsType = { [language in LanguagesKeys]?: string[] };
 export type ResultType = {
 	id: string;
 	language: LanguagesKeys;
 	time: string;
 	words: string[];
+	image: string | null;
 };
 export type HistoryType = { [key: ResultType['id']]: ResultType };
 export type ContextType = {

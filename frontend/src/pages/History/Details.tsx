@@ -18,6 +18,9 @@ const Details: FC<DetailsProps> = ({ id, details }) => {
 			<h2 className="text-xs text-gray-700">
 				{LANGUAGES[language]} | {id}
 			</h2>
+			{details.image && (
+				<img src={`data:image/png;base64,${details.image}`} className="mx-auto bg-gray-200 p-4 rounded-md shadow-sm" />
+			)}
 			{!details.words || !details.words.length ? (
 				<p className="text-base text-red-600">No incorrect words found.</p>
 			) : (

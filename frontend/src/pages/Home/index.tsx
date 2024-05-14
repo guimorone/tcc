@@ -5,15 +5,15 @@ import { useMutation } from '@tanstack/react-query';
 import { PhotoIcon, PaperAirplaneIcon } from '@heroicons/react/20/solid';
 import Select from '../../components/Select';
 import { httpRequest } from '../../services/api';
-import { classNames, getLocalStorageItem, setLocalStorageItem, showErrorToast, showSuccessToast } from '../../utils';
+import { classNames, showErrorToast, showSuccessToast } from '../../utils';
 import { useTypedOutletContext } from '../../utils/hooks';
 import { LANGUAGES } from '../../constants';
 import { HISTORY } from '../../constants/paths';
-import type { ResultType, HistoryType } from '../../@types';
+import type { ResultType } from '../../@types';
 
 const Home: FC = () => {
 	const navigate = useNavigate();
-	const { ignoreWords } = useTypedOutletContext();
+	const { ignoreWords, setHistory } = useTypedOutletContext();
 	const [fileFormData, setFileFormData] = useState<FormData | null>(null);
 	const [file, setFile] = useState<File | null>(null);
 	const [preview, setPreview] = useState<string | null>(null);
@@ -48,9 +48,7 @@ const Home: FC = () => {
 
 	useEffect(() => {
 		if (sendImageMutation.isSuccess && sendImageMutation.data) {
-			const prevHistory: HistoryType | null = getLocalStorageItem('history');
-			if (!prevHistory) setLocalStorageItem('history', { [sendImageMutation.data.id]: sendImageMutation.data });
-			else setLocalStorageItem('history', { ...prevHistory, [sendImageMutation.data.id]: sendImageMutation.data });
+			setHistory(prevHistory => ({ ...prevHistory, [sendImageMutation.data.id]: sendImageMutation.data }));
 			showSuccessToast('Image processed successfully\nRedirecting to results...');
 			setTimeout(navigate, 3000, `/${HISTORY}/${sendImageMutation.data.id}`);
 		} else if (sendImageMutation.isError)
