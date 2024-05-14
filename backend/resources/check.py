@@ -7,7 +7,7 @@ from base64 import b64encode
 from PIL import Image, ImageDraw
 from datetime import datetime
 from uuid import uuid4
-from typing import Dict, List, Tuple
+from typing import List, Dict, Tuple
 from flask_restful import Resource, request
 from google.cloud import vision
 from google.oauth2 import service_account
@@ -22,11 +22,11 @@ class Check(Resource):
         self.__google_client: vision.ImageAnnotatorClient = vision.ImageAnnotatorClient(credentials=credentials)
         super().__init__(*args, **kwargs)
 
-    def draw_missing_words(self, image: Image, bounds: Dict[str, List[Tuple[float, float]]]) -> bytes | None:
+    def draw_missing_words(self, image: Image, bounds: List[List[Tuple[float, float]]]) -> bytes | None:
         offset = 3
         try:
             draw = ImageDraw.Draw(image)
-            for vertices in bounds.values():
+            for vertices in bounds:
                 width, height = image.size
                 if len(vertices) != 4:
                     continue
@@ -74,7 +74,7 @@ class Check(Resource):
             texts = response.text_annotations
             dictionary = MultiDictionary()
             incorrect_words = []
-            bounds = {}
+            bounds = []
             for text in texts:
                 word = text.description.strip().lower()
                 if word in ignore_words or ignore_word(word):
@@ -92,7 +92,7 @@ class Check(Resource):
 
                 if word not in incorrect_words:
                     incorrect_words.append(word)
-                bounds[word] = [(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices]
+                bounds.append([(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices])
 
             drawn_image = self.draw_missing_words(Image.open(screenshot), bounds)
 
