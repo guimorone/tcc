@@ -9,8 +9,8 @@ const Navbar: FC = () => {
 
 	const navigation = [
 		{ label: 'Home', path: paths.HOME, current: currentPage === paths.HOME },
-		{ label: 'Ignore File', path: paths.IGNORE_FILE, current: currentPage === paths.IGNORE_FILE },
 		{ label: 'History', path: paths.HISTORY, current: currentPage === paths.HISTORY },
+		{ label: 'Settings', path: paths.SETTINGS, current: currentPage === paths.SETTINGS },
 	];
 
 	return (

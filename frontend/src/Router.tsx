@@ -1,8 +1,7 @@
 import { redirect, createBrowserRouter, RouterProvider } from 'react-router-dom';
-
 import Default from './pages/Default';
 import Home from './pages/Home';
-import IgnoreFile from './pages/IgnoreFile';
+import Settings from './pages/Settings';
 import History from './pages/History';
 
 import * as paths from './constants/paths';
@@ -13,9 +12,9 @@ const router = createBrowserRouter([
 		element: <Default />,
 		children: [
 			{ path: paths.HOME, element: <Home /> },
-			{ path: paths.IGNORE_FILE, element: <IgnoreFile /> },
 			{ path: paths.HISTORY, element: <History /> },
 			{ path: `${paths.HISTORY}/:id`, element: <History /> },
+			{ path: paths.SETTINGS, element: <Settings /> },
 		],
 	},
 	{

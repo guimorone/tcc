@@ -368,10 +368,10 @@ export const getPageTitle = (page: string): string => {
 	switch (page) {
 		case paths.HOME:
 			return 'Home';
-		case paths.IGNORE_FILE:
-			return 'Ignore File';
 		case paths.HISTORY:
 			return 'History';
+		case paths.SETTINGS:
+			return 'Settings';
 		default:
 			return page;
 	}
