@@ -8,7 +8,7 @@ import { HOME } from '../constants/paths';
 import type { IgnoreWordsType, HistoryType } from '../@types';
 
 export default function Default() {
-	const [ignoreWords, setIgnoreWords] = useState<IgnoreWordsType>(getLocalStorageItem('ignoreWords') || {});
+	const [ignoreWords, setIgnoreWords] = useState<IgnoreWordsType>(getLocalStorageItem('ignoreWords') || []);
 	const [history, setHistory] = useState<HistoryType>(getLocalStorageItem('history') || {});
 	const { pathname } = useLocation();
 	const navigate = useNavigate();

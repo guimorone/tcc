@@ -7,8 +7,9 @@ from base64 import b64encode
 from PIL import Image, ImageDraw
 from datetime import datetime
 from uuid import uuid4
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Any
 from flask_restful import Resource, request
+from flask_restful.reqparse import FileStorage
 from google.cloud import vision
 from google.oauth2 import service_account
 from PyMultiDictionary import MultiDictionary
@@ -49,61 +50,72 @@ class Check(Resource):
         except:
             return None
 
-    def post(self):
-        try:
-            screenshot = request.files.get('image')
-            if not screenshot:
-                return {'message': 'Image is required'}, 400
+    def process_screenshot(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
+        content = screenshot.read()
+        image = vision.Image(content=content)
+        response = self.__google_client.text_detection(image=image)
+        if response.error.message:
+            raise Exception(
+                "{}\nFor more info on error messages, check: "
+                "https://cloud.google.com/apis/design/errors".format(response.error.message)
+            )
 
-            language: str = request.form.get('language', '')
-            if not language:
+        texts = response.text_annotations
+        dictionary = MultiDictionary()
+        incorrect_words = []
+        bounds = []
+        for text in texts:
+            word = text.description.strip().lower()
+            if word in self.ignore_words or ignore_word(word):
+                continue
+
+            word = re.sub(r'[^\w\s$]|[\dº]', '', word)
+            if not word:
+                continue
+
+            # Classification = [Noun, Verb, Adjective, etc].
+            classification, _, _ = dictionary.meaning(self.language, word)
+            if classification and len(classification) > 0:
+                # Word is correct
+                continue
+
+            if word not in incorrect_words:
+                incorrect_words.append(word)
+            bounds.append([(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices])
+
+        drawn_image = self.draw_missing_words(Image.open(screenshot), bounds)
+
+        return screenshot.filename, incorrect_words, drawn_image
+
+    def post(self) -> Tuple[Dict[str, Any], int]:
+        try:
+            screenshots = request.files.getlist('images')
+            if not screenshots or not len(screenshots):
+                return {'message': 'At least one image is required'}, 400
+
+            self.language: str = request.form.get('language', '')
+            if not self.language:
                 return {'message': 'Language is required'}, 400
 
-            ignore_words_dict: Dict[str, List[str]] = json.loads(request.form.get('ignore_words', {}))
-            ignore_words = ignore_words_dict.get(language, [])
-
-            content = screenshot.read()
-            image = vision.Image(content=content)
-            response = self.__google_client.text_detection(image=image)
-            if response.error.message:
-                raise Exception(
-                    "{}\nFor more info on error messages, check: "
-                    "https://cloud.google.com/apis/design/errors".format(response.error.message)
-                )
-
-            texts = response.text_annotations
-            dictionary = MultiDictionary()
-            incorrect_words = []
-            bounds = []
-            for text in texts:
-                word = text.description.strip().lower()
-                if word in ignore_words or ignore_word(word):
-                    continue
-
-                word = re.sub(r'[^\w\s$]|[\dº]', '', word)
-                if not word:
-                    continue
-
-                # Classification = [Noun, Verb, Adjective, etc].
-                classification, _, _ = dictionary.meaning(language, word)
-                if classification and len(classification) > 0:
-                    # Word is correct
-                    continue
-
-                if word not in incorrect_words:
-                    incorrect_words.append(word)
-                bounds.append([(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices])
-
-            drawn_image = self.draw_missing_words(Image.open(screenshot), bounds)
-
-            now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+            self.ignore_words: List[str] = json.loads(request.form.get('ignore_words', []))
             data = {
                 'id': str(uuid4()),
-                'language': language,
-                'words': incorrect_words,
-                'time': now,
-                'image': drawn_image.decode('utf-8') if drawn_image else None,
+                'language': self.language,
+                'images': [],
             }
+
+            for screenshot in screenshots:
+                filename, incorrect_words, drawn_image = self.process_screenshot(screenshot)
+                data['images'].append(
+                    {
+                        'filename': filename,
+                        'words': incorrect_words,
+                        'image': drawn_image.decode('utf-8') if drawn_image else None,
+                    }
+                )
+
+            now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+            data['time'] = now
             return data, 200
         except:
             traceback.print_exc()

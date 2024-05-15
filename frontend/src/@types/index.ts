@@ -64,13 +64,12 @@ export type LanguagesKeys =
 	| 'tr'
 	| 'uk'
 	| 'zh';
-export type IgnoreWordsType = { [language in LanguagesKeys]?: string[] };
+export type IgnoreWordsType = string[];
 export type ResultType = {
 	id: string;
 	language: LanguagesKeys;
 	time: string;
-	words: string[];
-	image: string | null;
+	images: { filename: string; words: string[]; image: string | null }[];
 };
 export type HistoryType = { [key: ResultType['id']]: ResultType };
 export type ContextType = {
