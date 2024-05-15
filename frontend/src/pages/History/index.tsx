@@ -19,9 +19,9 @@ const History: FC = () => {
 
 	if (checkIfObjectIsEmpty(history))
 		return (
-			<div className="sm:flex-auto">
+			<div className="sm:flex-auto space-y-2">
 				<h1 className="text-base font-semibold leading-6 text-gray-900">No records</h1>
-				<p className="mt-2 text-sm text-gray-700">Nothing to see here yet...</p>
+				<p className="text-sm text-gray-700">Nothing to see here yet...</p>
 			</div>
 		);
 

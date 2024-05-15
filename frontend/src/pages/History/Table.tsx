@@ -17,14 +17,12 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 
 	return (
 		<div className="space-y-8">
-			<div className="sm:flex sm:items-center">
-				<div className="sm:flex-auto">
+			<div className="sm:flex sm:items-center space-y-4 sm:space-y-0 sm:gap-x-16">
+				<div className="sm:flex-auto space-y-2">
 					<h1 className="text-base font-semibold leading-6 text-gray-900">Results</h1>
-					<p className="mt-2 text-sm text-gray-700">
-						Check out the records of the images you have processed on this device
-					</p>
+					<p className="text-sm text-gray-700">Check out the records of the images you have processed on this device</p>
 				</div>
-				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+				<div className="sm:flex-none">
 					<button
 						disabled={checkIfObjectIsEmpty(history)}
 						onClick={clearHistory}
