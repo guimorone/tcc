@@ -29,8 +29,9 @@ const IgnoreFile: FC = () => {
 		}
 
 		setIgnoreWords(prevState => {
-			prevState[editedWordIndex] = editedWord;
+			if (!prevState || !prevState.length) return [editedWord];
 
+			prevState[editedWordIndex] = editedWord;
 			return prevState;
 		});
 		setEditedWord('');

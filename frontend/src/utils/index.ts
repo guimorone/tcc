@@ -1,3 +1,4 @@
+import localforage from 'localforage';
 import { AxiosError, type AxiosResponse } from 'axios';
 import { toast, type ToastPosition } from 'react-toastify';
 import * as paths from '../constants/paths';
@@ -311,19 +312,10 @@ export function setCharAt(str: string, index: number, chr: string): string {
 	return str.substring(0, index) + chr + str.substring(index + 1);
 }
 
-export const getLocalStorageItem = (key: string): any => {
-	const item = localStorage.getItem(key);
+export const getIndexedDBItem = async (key: string): Promise<any> => await localforage.getItem(key);
 
-	if (!item) return null;
-
-	try {
-		return JSON.parse(item);
-	} catch (error) {
-		return item;
-	}
-};
-
-export const setLocalStorageItem = (key: string, value: any): void => localStorage.setItem(key, JSON.stringify(value));
+export const setIndexedDBItem = async (key: string, value: any): Promise<any> =>
+	await localforage.setItem(key, value);
 
 export const showSuccessToast = (message: string, position?: ToastPosition): void => {
 	toast.success(message, {

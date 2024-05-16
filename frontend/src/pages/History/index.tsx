@@ -12,12 +12,12 @@ const History: FC = () => {
 	const id: string = paramId || state?.id;
 
 	useEffect(() => {
-		if (checkIfObjectIsEmpty(history)) return;
+		if (!history || checkIfObjectIsEmpty(history)) return;
 
 		if (id && !history[id]) showWarningToast('Invalid history id');
 	}, [history, id]);
 
-	if (checkIfObjectIsEmpty(history))
+	if (!history || checkIfObjectIsEmpty(history))
 		return (
 			<div className="sm:flex-auto space-y-2">
 				<h1 className="text-base font-semibold leading-6 text-gray-900">No records</h1>

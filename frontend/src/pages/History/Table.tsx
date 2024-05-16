@@ -4,12 +4,12 @@ import { TrashIcon } from '@heroicons/react/20/solid';
 import { checkIfObjectIsEmpty } from '../../utils';
 import { LANGUAGES } from '../../constants';
 import { HISTORY } from '../../constants/paths';
-import type { FC, Dispatch, SetStateAction } from 'react';
-import type { HistoryType } from '../../@types';
+import type { FC } from 'react';
+import type { ContextType } from '../../@types';
 
 interface TableProps {
-	history: HistoryType;
-	setHistory: Dispatch<SetStateAction<HistoryType>>;
+	history: ContextType['history'];
+	setHistory: ContextType['setHistory'];
 }
 
 const Table: FC<TableProps> = ({ history, setHistory }) => {
@@ -24,7 +24,7 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 				</div>
 				<div className="sm:flex-none">
 					<button
-						disabled={checkIfObjectIsEmpty(history)}
+						disabled={checkIfObjectIsEmpty(history || {})}
 						onClick={clearHistory}
 						className="inline-flex items-center gap-x-2 rounded-md bg-red-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:bg-gray-200 disabled:text-gray-600 disabled:hover:cursor-not-allowed"
 					>
@@ -57,7 +57,7 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-gray-200">
-								{Object.values(history)?.map(({ id, language, time }, index) => (
+								{Object.values(history || {})?.map(({ id, language, time }, index) => (
 									<tr key={`table-element-${id}-${index}`}>
 										<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{id}</td>
 										<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{LANGUAGES[language]}</td>

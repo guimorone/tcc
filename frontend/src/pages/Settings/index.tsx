@@ -1,5 +1,9 @@
 import { useLocation } from 'react-router-dom';
+import { RiGoogleLine } from 'react-icons/ri';
+import { PiBooks } from 'react-icons/pi';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
+import GoogleCloudVision from './GoogleCloudVision';
+import Dictionaries from './Dictionaries';
 import IgnoreFile from './IgnoreFile';
 import { classNames } from '../../utils';
 import type { FC } from 'react';
@@ -7,6 +11,22 @@ import type { FC } from 'react';
 const Settings: FC = () => {
 	const { hash } = useLocation();
 	const navigation = [
+		{
+			id: 'google-cloud-vision',
+			name: 'Google Cloud Vision',
+			current: hash === '#google-cloud-vision',
+			Icon: RiGoogleLine,
+			description: 'Set if you want to use Google Cloud Vision API to check images with text detection.',
+			Element: GoogleCloudVision,
+		},
+		{
+			id: 'dictionaries',
+			name: 'Dictionaries',
+			current: hash === '#dictionaries',
+			Icon: PiBooks,
+			description: 'Upload custom dictionaries for personalized checks.',
+			Element: Dictionaries,
+		},
 		{
 			id: 'ignore-file',
 			name: 'Ignore File',
@@ -47,12 +67,12 @@ const Settings: FC = () => {
 				</nav>
 			</aside>
 			<div className="lg:flex-auto">
-				<div className="mx-auto space-y-16 sm:space-y-20 lg:max-w-none">
+				<div className="mx-auto space-y-16 sm:space-y-20">
 					{navigation.map(({ id, name, description, Element }, index) => (
-						<div key={`settings-section-${id}-${index}`} id={`#${id}`} className="space-y-6">
+						<div key={`settings-section-${id}-${index}`} id={id} className="space-y-6">
 							<div className="space-y-1 pb-6 border-b border-gray-200">
 								<h2 className="text-base font-semibold leading-7 text-gray-900">{name}</h2>
-								<p className="mt-1 text-sm leading-6 text-gray-500">{description}</p>
+								<p className="text-sm leading-6 text-gray-500">{description}</p>
 							</div>
 							<Element />
 						</div>

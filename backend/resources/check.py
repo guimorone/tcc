@@ -17,11 +17,10 @@ from utils.misc import ignore_word
 
 
 class Check(Resource):
-    def __init__(self, *args, **kwargs) -> None:
+    def get_google_vision_client(self) -> vision.ImageAnnotatorClient:
         service_account_info = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
         credentials = service_account.Credentials.from_service_account_info(service_account_info)
-        self.__google_client: vision.ImageAnnotatorClient = vision.ImageAnnotatorClient(credentials=credentials)
-        super().__init__(*args, **kwargs)
+        return vision.ImageAnnotatorClient(credentials=credentials)
 
     def draw_missing_words(self, image: Image, bounds: List[List[Tuple[float, float]]]) -> bytes | None:
         offset = 3
@@ -51,9 +50,10 @@ class Check(Resource):
             return None
 
     def process_screenshot(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
+        client = self.get_google_vision_client()
         content = screenshot.read()
         image = vision.Image(content=content)
-        response = self.__google_client.text_detection(image=image)
+        response = client.text_detection(image=image)
         if response.error.message:
             raise Exception(
                 "{}\nFor more info on error messages, check: "
@@ -97,11 +97,14 @@ class Check(Resource):
             if not self.language:
                 return {'message': 'Language is required'}, 400
 
+            self.use_google_cloud_vision: bool = json.loads(request.form.get('use_google_cloud_vision', False))
+            self.dict: FileStorage = request.files.get('dict')
             self.ignore_words: List[str] = json.loads(request.form.get('ignore_words', []))
             data = {
                 'id': str(uuid4()),
                 'language': self.language,
                 'images': [],
+                'custom_dict_used': self.dict.name or '',
             }
 
             for screenshot in screenshots:
