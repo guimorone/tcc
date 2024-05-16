@@ -71,9 +71,10 @@ export type ResultType = {
   language: LanguagesKeys;
   time: string;
   images: { filename: string; words: string[]; image: string | null }[];
+  custom_dict_used: { filename: string; usage_type: DictUsageType } | null;
 };
 export type HistoryType = { [key: ResultType['id']]: ResultType };
-export type DictToUseType = { dict: File; usageType: DictUsageType } | null;
+export type DictToUseType = { dict: File | null; usageType: DictUsageType } | null;
 export type ContextType = {
   currentPage: string;
   ignoreWords: IgnoreWordsType | undefined;
@@ -87,3 +88,4 @@ export type ContextType = {
   dictToUse: DictToUseType | undefined;
   setDictToUse: Dispatch<SetStateAction<DictToUseType | undefined>>;
 };
+export type OptionType = { label: string; value: string | number };

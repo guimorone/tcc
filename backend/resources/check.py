@@ -7,13 +7,14 @@ from base64 import b64encode
 from PIL import Image, ImageDraw
 from datetime import datetime
 from uuid import uuid4
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Literal
 from flask_restful import Resource, request
 from flask_restful.reqparse import FileStorage
 from google.cloud import vision
 from google.oauth2 import service_account
 from PyMultiDictionary import MultiDictionary
 from utils.misc import ignore_word
+from utils.exceptions import BackendError
 
 
 class Check(Resource):
@@ -50,6 +51,9 @@ class Check(Resource):
             return None
 
     def process_screenshot(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
+        if not self.use_google_cloud_vision:
+            raise BackendError('Google Cloud Vision is required to process images')
+
         client = self.get_google_vision_client()
         content = screenshot.read()
         image = vision.Image(content=content)
@@ -74,10 +78,21 @@ class Check(Resource):
                 continue
 
             # Classification = [Noun, Verb, Adjective, etc].
-            classification, _, _ = dictionary.meaning(self.language, word)
-            if classification and len(classification) > 0:
-                # Word is correct
-                continue
+            if self.custom_dict and len(self.custom_dict) > 0:
+                if self.dict_usage_type == 'complement':
+                    classification, _, _ = dictionary.meaning(self.language, word)
+                    if (classification and len(classification) > 0) or (word in self.custom_dict):
+                        # Word is correct
+                        continue
+                # Replacement
+                elif word in self.custom_dict:
+                    # Word is correct
+                    continue
+            else:
+                classification, _, _ = dictionary.meaning(self.language, word)
+                if classification and len(classification) > 0:
+                    # Word is correct
+                    continue
 
             if word not in incorrect_words:
                 incorrect_words.append(word)
@@ -91,21 +106,31 @@ class Check(Resource):
         try:
             screenshots = request.files.getlist('images')
             if not screenshots or not len(screenshots):
-                return {'message': 'At least one image is required'}, 400
+                raise BackendError('At least one image is required')
 
             self.language: str = request.form.get('language', '')
             if not self.language:
-                return {'message': 'Language is required'}, 400
+                raise BackendError('Language is required')
 
-            self.use_google_cloud_vision: bool = json.loads(request.form.get('use_google_cloud_vision', False))
-            self.dict: FileStorage = request.files.get('dict')
-            self.ignore_words: List[str] = json.loads(request.form.get('ignore_words', []))
+            self.use_google_cloud_vision: bool = json.loads(request.form.get('use_google_cloud_vision', 'true'))
+            dict_file: FileStorage | None = request.files.get('dict_file', None)
+            self.dict_usage_type: Literal['complement', 'replacement'] = request.form.get(
+                'dict_usage_type', 'complement'
+            )
+            self.ignore_words: List[str] = json.loads(request.form.get('ignore_words', '[]'))
             data = {
                 'id': str(uuid4()),
+                'time': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
                 'language': self.language,
                 'images': [],
-                'custom_dict_used': self.dict.name or '',
+                'custom_dict_used': (
+                    {'filename': dict_file.filename, 'usage_type': self.dict_usage_type} if dict_file else None
+                ),
             }
+            self.custom_dict: List[str] | None = None
+            if dict_file:
+                lines = dict_file.read().splitlines()
+                self.custom_dict = [line.decode('utf-8').strip().lower() for line in lines]
 
             for screenshot in screenshots:
                 filename, incorrect_words, drawn_image = self.process_screenshot(screenshot)
@@ -117,9 +142,9 @@ class Check(Resource):
                     }
                 )
 
-            now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-            data['time'] = now
             return data, 200
+        except BackendError as err:
+            return {'message': str(err)}, 400
         except:
             traceback.print_exc()
             return {'message': 'Internal Server Error'}, 500

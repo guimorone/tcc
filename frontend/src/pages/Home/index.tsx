@@ -10,7 +10,7 @@ import { classNames, showErrorToast, showSuccessToast } from '../../utils';
 import { useTypedOutletContext } from '../../utils/hooks';
 import { LANGUAGES } from '../../constants';
 import { HISTORY } from '../../constants/paths';
-import type { ResultType } from '../../@types';
+import type { ResultType, OptionType } from '../../@types';
 
 const Home: FC = () => {
   const navigate = useNavigate();
@@ -18,12 +18,12 @@ const Home: FC = () => {
   const [fileFormData, setFileFormData] = useState<FormData | null>(null);
   const [files, setFiles] = useState<File[] | null>(null);
   const [previews, setPreviews] = useState<string[]>([]);
-  const [languageSelected, setLanguageSelected] = useState<{ value: string; label: string }>({
+  const [languageSelected, setLanguageSelected] = useState<OptionType>({
     value: 'pt',
     label: LANGUAGES['pt'],
   });
   const sendImageMutations = useMutation<ResultType>({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<any> => {
       const response = await httpRequest('check', 'POST', {
         data: fileFormData,
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -47,14 +47,14 @@ const Home: FC = () => {
     setPreviews(newPreviews);
 
     // Custom dictionary
-    if (dictToUse) {
+    if (dictToUse?.dict) {
       formData.append('dict_file', dictToUse.dict);
       formData.append('dict_usage_type', dictToUse.usageType);
     }
 
     // Other variables
     formData.append('ignore_words', JSON.stringify(ignoreWords));
-    formData.append('language', languageSelected.value);
+    formData.append('language', languageSelected.value.toString());
     formData.append('use_google_cloud_vision', useGoogleCloudVision ? 'true' : 'false');
     setFileFormData(formData);
 
@@ -146,7 +146,7 @@ const Home: FC = () => {
             label: (LANGUAGES as { [key: string]: string })[key],
           }))}
           selectedOption={languageSelected}
-          setSelectedOption={setLanguageSelected}
+          setSelectedOption={setLanguageSelected as any}
           disabled={sendImageMutations.isPending}
         />
         <div>
