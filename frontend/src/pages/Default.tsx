@@ -5,6 +5,7 @@ import { getIndexedDBItem, setIndexedDBItem, getPageTitle } from '../utils';
 import { useDocumentTitle } from '../utils/hooks';
 import { APP_NAME, LANGUAGES } from '../constants';
 import { HOME } from '../constants/paths';
+import * as keys from '../constants/keys';
 import type { IgnoreWordsType, HistoryType, OptionType, DictToUseType } from '../@types';
 
 export default function Default() {
@@ -24,42 +25,42 @@ export default function Default() {
 	const updateLanguageSelected = async (): Promise<void> => {
 		if (languageSelected === undefined) return;
 
-		await setIndexedDBItem('languageSelected', languageSelected);
+		await setIndexedDBItem(keys.LANGUAGE_SELECTED_KEY, languageSelected);
 	};
 	const updateIgnoreWords = async (): Promise<void> => {
 		if (ignoreWords === undefined) return;
 
-		await setIndexedDBItem('ignoreWords', ignoreWords);
+		await setIndexedDBItem(keys.IGNORE_WORDS_KEY, ignoreWords);
 	};
 	const updateHistory = async (): Promise<void> => {
 		if (history === undefined) return;
 
-		await setIndexedDBItem('history', history);
+		await setIndexedDBItem(keys.HISTORY_KEY, history);
 	};
 	const updateUseGoogleCloudVision = async (): Promise<void> => {
 		if (useGoogleCloudVision === undefined) return;
 
-		await setIndexedDBItem('useGoogleCloudVision', useGoogleCloudVision);
+		await setIndexedDBItem(keys.USE_GOOGLE_CLOUD_VISION_KEY, useGoogleCloudVision);
 	};
 	const updateGoogleServiceAccountCredentials = async (): Promise<void> => {
 		if (googleServiceAccountCredentials === undefined) return;
 
-		await setIndexedDBItem('googleServiceAccountCredentials', googleServiceAccountCredentials);
+		await setIndexedDBItem(keys.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_KEY, googleServiceAccountCredentials);
 	};
 	const updateCustomDicts = async (): Promise<void> => {
 		if (customDicts === undefined) return;
 
-		await setIndexedDBItem('customDicts', customDicts);
+		await setIndexedDBItem(keys.CUSTOM_DICTS_KEY, customDicts);
 	};
 	const updateDictToUse = async (): Promise<void> => {
 		if (dictToUse === undefined) return;
 
-		await setIndexedDBItem('dictToUse', dictToUse);
+		await setIndexedDBItem(keys.DICT_TO_USE_KEY, dictToUse);
 	};
 
 	useEffect(() => {
 		if (languageSelected === undefined)
-			getIndexedDBItem('languageSelected').then(data =>
+			getIndexedDBItem(keys.LANGUAGE_SELECTED_KEY).then(data =>
 				setLanguageSelected(
 					data || {
 						value: 'pt',
@@ -67,14 +68,18 @@ export default function Default() {
 					}
 				)
 			);
-		if (ignoreWords === undefined) getIndexedDBItem('ignoreWords').then(data => setIgnoreWords(data || []));
-		if (history === undefined) getIndexedDBItem('history').then(data => setHistory(data || {}));
+		if (ignoreWords === undefined) getIndexedDBItem(keys.IGNORE_WORDS_KEY).then(data => setIgnoreWords(data || []));
+		if (history === undefined) getIndexedDBItem(keys.HISTORY_KEY).then(data => setHistory(data || {}));
 		if (useGoogleCloudVision === undefined)
-			getIndexedDBItem('useGoogleCloudVision').then(data => setUseGoogleCloudVision(data || true));
+			getIndexedDBItem(keys.USE_GOOGLE_CLOUD_VISION_KEY).then(data =>
+				setUseGoogleCloudVision(data === null ? true : data)
+			);
 		if (googleServiceAccountCredentials === undefined)
-			getIndexedDBItem('googleServiceAccountCredentials').then(data => setGoogleServiceAccountCredentials(data || ''));
-		if (customDicts === undefined) getIndexedDBItem('customDicts').then(data => setCustomDicts(data || []));
-		if (dictToUse === undefined) getIndexedDBItem('dictToUse').then(data => setDictToUse(data || null));
+			getIndexedDBItem(keys.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_KEY).then(data =>
+				setGoogleServiceAccountCredentials(data || '')
+			);
+		if (customDicts === undefined) getIndexedDBItem(keys.CUSTOM_DICTS_KEY).then(data => setCustomDicts(data || []));
+		if (dictToUse === undefined) getIndexedDBItem(keys.DICT_TO_USE_KEY).then(data => setDictToUse(data || null));
 	}, []);
 
 	useEffect(() => {

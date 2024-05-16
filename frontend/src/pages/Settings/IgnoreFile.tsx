@@ -38,6 +38,7 @@ const IgnoreFile: FC = () => {
 		setEditedWordIndex(-1);
 	};
 	const handleAddNewWord = (): void => {
+		if (!newWord) return;
 		if (ignoreWords?.includes(newWord)) {
 			showWarningToast('Word already ignored');
 			return;
