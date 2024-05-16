@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { DocumentMagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { TrashIcon } from '@heroicons/react/20/solid';
-import { checkIfObjectIsEmpty } from '../../utils';
+import { checkIfObjectIsEmpty, capitalizeString } from '../../utils';
 import { LANGUAGES } from '../../constants';
 import { HISTORY } from '../../constants/paths';
 import type { FC } from 'react';
@@ -46,6 +46,9 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 										Language
 									</th>
 									<th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+										Custom Dictionary
+									</th>
+									<th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
 										Time
 									</th>
 									<th scope="col" className="relative py-3.5 pl-3 pr-4">
@@ -57,10 +60,15 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-gray-200">
-								{Object.values(history || {})?.map(({ id, language, time }, index) => (
+								{Object.values(history || {})?.map(({ id, language, time, custom_dict_used }, index) => (
 									<tr key={`table-element-${id}-${index}`}>
 										<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{id}</td>
 										<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{LANGUAGES[language]}</td>
+										<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+											{custom_dict_used
+												? `${custom_dict_used?.filename} | (${capitalizeString(custom_dict_used?.usage_type)})`
+												: 'No custom dictionary used'}
+										</td>
 										<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{time}</td>
 										<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right">
 											<Link

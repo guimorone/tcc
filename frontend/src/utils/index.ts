@@ -314,8 +314,7 @@ export function setCharAt(str: string, index: number, chr: string): string {
 
 export const getIndexedDBItem = async (key: string): Promise<any> => await localforage.getItem(key);
 
-export const setIndexedDBItem = async (key: string, value: any): Promise<any> =>
-	await localforage.setItem(key, value);
+export const setIndexedDBItem = async (key: string, value: any): Promise<any> => await localforage.setItem(key, value);
 
 export const showSuccessToast = (message: string, position?: ToastPosition): void => {
 	toast.success(message, {
