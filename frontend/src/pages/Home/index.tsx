@@ -6,7 +6,7 @@ import { PhotoIcon, PaperAirplaneIcon } from '@heroicons/react/20/solid';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import Select from '../../components/Select';
 import { httpRequest } from '../../services/api';
-import { classNames, showErrorToast, showSuccessToast } from '../../utils';
+import { classNames, showErrorToast, showSuccessToast, showWarningToast } from '../../utils';
 import { useTypedOutletContext } from '../../utils/hooks';
 import { LANGUAGES } from '../../constants';
 import { HISTORY } from '../../constants/paths';
@@ -14,8 +14,15 @@ import type { ResultType } from '../../@types';
 
 const Home: FC = () => {
 	const navigate = useNavigate();
-	const { languageSelected, setLanguageSelected, dictToUse, ignoreWords, setHistory, useGoogleCloudVision } =
-		useTypedOutletContext();
+	const {
+		languageSelected,
+		setLanguageSelected,
+		dictToUse,
+		ignoreWords,
+		setHistory,
+		useGoogleCloudVision,
+		googleServiceAccountCredentials,
+	} = useTypedOutletContext();
 	const [fileFormData, setFileFormData] = useState<FormData | null>(null);
 	const [files, setFiles] = useState<File[] | null>(null);
 	const [previews, setPreviews] = useState<string[]>([]);
@@ -53,6 +60,7 @@ const Home: FC = () => {
 		formData.append('ignore_words', JSON.stringify(ignoreWords));
 		formData.append('language', languageSelected.value.toString());
 		formData.append('use_google_cloud_vision', useGoogleCloudVision ? 'true' : 'false');
+		formData.append('google_service_account_credentials', googleServiceAccountCredentials?.trim() || '');
 		setFileFormData(formData);
 
 		// Release memory (Cleanup)
@@ -79,6 +87,10 @@ const Home: FC = () => {
 
 	const handleSendImage = (): void => {
 		if (!fileFormData || sendImageMutations.isPending) return;
+		if (useGoogleCloudVision && !googleServiceAccountCredentials) {
+			showWarningToast('Google Cloud Service Account Credentials are required if you enabled this service.');
+			return;
+		}
 
 		sendImageMutations.mutate();
 	};

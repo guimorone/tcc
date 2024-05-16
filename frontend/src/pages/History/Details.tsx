@@ -31,6 +31,9 @@ const Details: FC<DetailsProps> = ({ id, details }) => {
 					<b>Custom Dictionary &rarr;</b> No custom dictionary used
 				</h3>
 			)}
+			<h3 className="text-xs text-gray-700">
+				<b>Google Cloud Vision &rarr;</b> {details.google_cloud_vision_used ? 'Used' : 'Not used'}
+			</h3>
 			<div className="space-y-4 divide-y-2 divide-indigo-600 divide-dashed">
 				{details?.images?.map(({ filename, words, image }, index) => (
 					<div key={`result-${filename}-${index}`} className="space-y-4">

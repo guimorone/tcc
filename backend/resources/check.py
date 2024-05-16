@@ -19,9 +19,11 @@ from utils.exceptions import BackendError
 
 class Check(Resource):
     def get_google_vision_client(self) -> vision.ImageAnnotatorClient:
-        service_account_info = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
-        credentials = service_account.Credentials.from_service_account_info(service_account_info)
-        return vision.ImageAnnotatorClient(credentials=credentials)
+        try:
+            credentials = service_account.Credentials.from_service_account_info(self.google_service_account_credentials)
+            return vision.ImageAnnotatorClient(credentials=credentials)
+        except Exception as err:
+            raise BackendError('Invalid Google Service Account Credentials: \n{}'.format(str(err)))
 
     def draw_missing_words(self, image: Image, bounds: List[List[Tuple[float, float]]]) -> bytes | None:
         offset = 3
@@ -51,6 +53,7 @@ class Check(Resource):
             return None
 
     def process_screenshot(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
+        # Quando tiver outra biblioteca ou serviço, essa linha de baixo não existirá (openCV talvez)
         if not self.use_google_cloud_vision:
             raise BackendError('Google Cloud Vision is required to process images')
 
@@ -59,7 +62,7 @@ class Check(Resource):
         image = vision.Image(content=content)
         response = client.text_detection(image=image)
         if response.error.message:
-            raise Exception(
+            raise BackendError(
                 "{}\nFor more info on error messages, check: "
                 "https://cloud.google.com/apis/design/errors".format(response.error.message)
             )
@@ -113,6 +116,15 @@ class Check(Resource):
                 raise BackendError('Language is required')
 
             self.use_google_cloud_vision: bool = json.loads(request.form.get('use_google_cloud_vision', 'true'))
+            try:
+                self.google_service_account_credentials: Dict[str, str] | None = json.loads(
+                    request.form.get('google_service_account_credentials', 'null')
+                )
+                if self.use_google_cloud_vision and not self.google_service_account_credentials:
+                    raise BackendError('Google Service Account Credentials are required')
+            except:
+                raise BackendError('Invalid Google Service Account Credentials')
+
             dict_file: FileStorage | None = request.files.get('dict_file', None)
             self.dict_usage_type: Literal['complement', 'replacement'] = request.form.get(
                 'dict_usage_type', 'complement'
@@ -123,6 +135,7 @@ class Check(Resource):
                 'time': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
                 'language': self.language,
                 'images': [],
+                'google_cloud_vision_used': self.use_google_cloud_vision,
                 'custom_dict_used': (
                     {'filename': dict_file.filename, 'usage_type': self.dict_usage_type} if dict_file else None
                 ),

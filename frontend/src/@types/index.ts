@@ -71,6 +71,7 @@ export type ResultType = {
 	language: LanguagesKeys;
 	time: string;
 	images: { filename: string; words: string[]; image: string | null }[];
+	google_cloud_vision_used: boolean;
 	custom_dict_used: { filename: string; usage_type: DictUsageType } | null;
 };
 export type HistoryType = { [key: ResultType['id']]: ResultType };
@@ -85,6 +86,8 @@ export type ContextType = {
 	setHistory: Dispatch<SetStateAction<HistoryType | undefined>>;
 	useGoogleCloudVision: boolean | undefined;
 	setUseGoogleCloudVision: Dispatch<SetStateAction<boolean | undefined>>;
+	googleServiceAccountCredentials: string | undefined;
+	setGoogleServiceAccountCredentials: Dispatch<SetStateAction<string | undefined>>;
 	customDicts: File[] | undefined;
 	setCustomDicts: Dispatch<SetStateAction<File[] | undefined>>;
 	dictToUse: DictToUseType | undefined;

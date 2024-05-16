@@ -15,6 +15,7 @@ export default function Default() {
 	const [ignoreWords, setIgnoreWords] = useState<IgnoreWordsType | undefined>(undefined);
 	const [history, setHistory] = useState<HistoryType | undefined>(undefined);
 	const [useGoogleCloudVision, setUseGoogleCloudVision] = useState<boolean | undefined>(undefined);
+	const [googleServiceAccountCredentials, setGoogleServiceAccountCredentials] = useState<string | undefined>(undefined);
 	const [customDicts, setCustomDicts] = useState<File[] | undefined>(undefined);
 	const [dictToUse, setDictToUse] = useState<DictToUseType | null | undefined>(undefined);
 
@@ -39,6 +40,11 @@ export default function Default() {
 		if (useGoogleCloudVision === undefined) return;
 
 		await setIndexedDBItem('useGoogleCloudVision', useGoogleCloudVision);
+	};
+	const updateGoogleServiceAccountCredentials = async (): Promise<void> => {
+		if (googleServiceAccountCredentials === undefined) return;
+
+		await setIndexedDBItem('googleServiceAccountCredentials', googleServiceAccountCredentials);
 	};
 	const updateCustomDicts = async (): Promise<void> => {
 		if (customDicts === undefined) return;
@@ -65,6 +71,8 @@ export default function Default() {
 		if (history === undefined) getIndexedDBItem('history').then(data => setHistory(data || {}));
 		if (useGoogleCloudVision === undefined)
 			getIndexedDBItem('useGoogleCloudVision').then(data => setUseGoogleCloudVision(data || true));
+		if (googleServiceAccountCredentials === undefined)
+			getIndexedDBItem('googleServiceAccountCredentials').then(data => setGoogleServiceAccountCredentials(data || ''));
 		if (customDicts === undefined) getIndexedDBItem('customDicts').then(data => setCustomDicts(data || []));
 		if (dictToUse === undefined) getIndexedDBItem('dictToUse').then(data => setDictToUse(data || null));
 	}, []);
@@ -86,6 +94,9 @@ export default function Default() {
 	useEffect(() => {
 		updateUseGoogleCloudVision();
 	}, [useGoogleCloudVision]);
+	useEffect(() => {
+		updateGoogleServiceAccountCredentials();
+	}, [updateGoogleServiceAccountCredentials]);
 	useEffect(() => {
 		updateCustomDicts();
 	}, [customDicts]);
@@ -112,6 +123,8 @@ export default function Default() {
 							setHistory,
 							useGoogleCloudVision,
 							setUseGoogleCloudVision,
+							googleServiceAccountCredentials,
+							setGoogleServiceAccountCredentials,
 							customDicts,
 							setCustomDicts,
 							dictToUse,
