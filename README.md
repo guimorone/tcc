@@ -33,7 +33,7 @@ ou
 cd backend && pyenv virtualenv X.X.X venv-name && pyenv activate venv-name
 ```
 
-- Instale os pacotes necessários e os atualize para a última versão (se tiver algum problema, rode `poetry install` antes do update, mas geralmente não é necessário):
+- Instale os pacotes necessários:
 
 ```sh
   pip install -r requirements.txt
@@ -45,7 +45,7 @@ cd backend && pyenv virtualenv X.X.X venv-name && pyenv activate venv-name
   python app.py
 ```
 
-Pronto, o backend irá rodar na URL `http://localhost:8000`.
+Pronto, o backend irá rodar na URL `http://localhost:5000`.
 
 ### Front-End
 
@@ -89,4 +89,3 @@ ou, para ajeitar os erros de formatação também:
 ## Credenciais
 
 - O arquivo `frontend/.env` pode ser atualizado com as informações presentes em `frontend/.env.default`.
-- O arquivo `backend/.env` precisa de uma credencial do google, entre em contato comigo se precisar.

@@ -77,6 +77,8 @@ export type HistoryType = { [key: ResultType['id']]: ResultType };
 export type DictToUseType = { dict: File | null; usageType: DictUsageType } | null;
 export type ContextType = {
 	currentPage: string;
+	languageSelected: OptionType | undefined;
+	setLanguageSelected: Dispatch<SetStateAction<OptionType | undefined>>;
 	ignoreWords: IgnoreWordsType | undefined;
 	setIgnoreWords: Dispatch<SetStateAction<IgnoreWordsType | undefined>>;
 	history: HistoryType | undefined;

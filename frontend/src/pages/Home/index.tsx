@@ -10,18 +10,15 @@ import { classNames, showErrorToast, showSuccessToast } from '../../utils';
 import { useTypedOutletContext } from '../../utils/hooks';
 import { LANGUAGES } from '../../constants';
 import { HISTORY } from '../../constants/paths';
-import type { ResultType, OptionType } from '../../@types';
+import type { ResultType } from '../../@types';
 
 const Home: FC = () => {
 	const navigate = useNavigate();
-	const { dictToUse, ignoreWords, setHistory, useGoogleCloudVision } = useTypedOutletContext();
+	const { languageSelected, setLanguageSelected, dictToUse, ignoreWords, setHistory, useGoogleCloudVision } =
+		useTypedOutletContext();
 	const [fileFormData, setFileFormData] = useState<FormData | null>(null);
 	const [files, setFiles] = useState<File[] | null>(null);
 	const [previews, setPreviews] = useState<string[]>([]);
-	const [languageSelected, setLanguageSelected] = useState<OptionType>({
-		value: 'pt',
-		label: LANGUAGES['pt'],
-	});
 	const sendImageMutations = useMutation<ResultType>({
 		mutationFn: async (): Promise<any> => {
 			const response = await httpRequest('check', 'POST', {
@@ -34,7 +31,7 @@ const Home: FC = () => {
 	});
 
 	useEffect(() => {
-		if (!files || !files.length) return;
+		if (!languageSelected || !files || !files.length) return;
 
 		const formData = new FormData();
 		const newPreviews: string[] = [];
@@ -60,7 +57,7 @@ const Home: FC = () => {
 
 		// Release memory (Cleanup)
 		return () => newPreviews.forEach(URL.revokeObjectURL);
-	}, [files]);
+	}, [languageSelected, files]);
 
 	useEffect(() => {
 		if (sendImageMutations.isSuccess && sendImageMutations.data) {
@@ -143,7 +140,7 @@ const Home: FC = () => {
 						value: key,
 						label: (LANGUAGES as { [key: string]: string })[key],
 					}))}
-					selectedOption={languageSelected}
+					selectedOption={languageSelected as any}
 					setSelectedOption={setLanguageSelected as any}
 					disabled={sendImageMutations.isPending}
 				/>

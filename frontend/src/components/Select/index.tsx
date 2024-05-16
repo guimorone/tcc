@@ -52,15 +52,17 @@ const Select: FC<SelectProps> = ({
 								value={null}
 								className={({ active }) =>
 									classNames(
-										'relative cursor-default select-none py-2 pl-3 pr-9',
+										'relative cursor-default hover:cursor-pointer select-none py-2 pl-3 pr-9',
 										active ? 'bg-indigo-600 text-white' : 'text-gray-900'
 									)
 								}
 							>
-								{({ active, selected }) => (
+								{({ active }) => (
 									<>
-										<span className={classNames('block truncate', selected && 'font-semibold')}>NO OPTION</span>
-										{selected && (
+										<span className={classNames('block truncate', selectedOption === null && 'font-semibold')}>
+											NO OPTION
+										</span>
+										{selectedOption === null && (
 											<span
 												className={classNames(
 													'absolute inset-y-0 right-0 flex items-center pr-4',
@@ -80,27 +82,36 @@ const Select: FC<SelectProps> = ({
 								value={option}
 								className={({ active }) =>
 									classNames(
-										'relative cursor-default select-none py-2 pl-3 pr-9',
+										'relative cursor-default hover:cursor-pointer select-none py-2 pl-3 pr-9',
 										active ? 'bg-indigo-600 text-white' : 'text-gray-900'
 									)
 								}
 							>
-								{({ active, selected }) => (
-									<>
-										<span className={classNames('block truncate', selected && 'font-semibold')}>{option.label}</span>
-
-										{selected && (
+								{({ active }) => {
+									return (
+										<>
 											<span
 												className={classNames(
-													'absolute inset-y-0 right-0 flex items-center pr-4',
-													active ? 'text-white' : 'text-indigo-600'
+													'block truncate',
+													selectedOption?.value === option.value && 'font-semibold'
 												)}
 											>
-												<CheckIcon className="h-5 w-5" aria-hidden="true" />
+												{option.label}
 											</span>
-										)}
-									</>
-								)}
+
+											{selectedOption?.value === option.value && (
+												<span
+													className={classNames(
+														'absolute inset-y-0 right-0 flex items-center pr-4',
+														active ? 'text-white' : 'text-indigo-600'
+													)}
+												>
+													<CheckIcon className="h-5 w-5" aria-hidden="true" />
+												</span>
+											)}
+										</>
+									);
+								}}
 							</Combobox.Option>
 						))}
 					</Combobox.Options>
