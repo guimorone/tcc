@@ -30,6 +30,10 @@ const GoogleCloudVision: FC = () => {
 						The Google Cloud Vision API is a powerful tool that can help you to detect text in images. If you want to
 						use it, you need to enable this setting.
 					</Switch.Description>
+					<Switch.Description as="span" className="text-sm text-gray-500">
+						Remember, the Google Cloud Vision is a powerful and precise service, regardless beign paid. Not using it can
+						bring some weird results, mostly if you are checking words with latin letters, such as "Ç".
+					</Switch.Description>
 				</span>
 				<Switch
 					checked={useGoogleCloudVision}

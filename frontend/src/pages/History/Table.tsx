@@ -49,6 +49,9 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 										Custom Dictionary
 									</th>
 									<th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+										Google Cloud Vision
+									</th>
+									<th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
 										Time
 									</th>
 									<th scope="col" className="relative py-3.5 pl-3 pr-4">
@@ -60,48 +63,55 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-gray-200">
-								{Object.values(history || {})?.map(({ id, language, time, custom_dict_used }, index) => (
-									<tr key={`table-element-${id}-${index}`}>
-										<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{id}</td>
-										<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{LANGUAGES[language]}</td>
-										<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-											{custom_dict_used
-												? `${custom_dict_used?.filename} | (${capitalizeString(custom_dict_used?.usage_type)})`
-												: 'No custom dictionary used'}
-										</td>
-										<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{time}</td>
-										<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right">
-											<Link
-												to={`/${HISTORY}/${id}`}
-												target="_blank"
-												className="inline-flex items-center gap-x-2 text-indigo-600 hover:text-indigo-900"
-											>
-												<DocumentMagnifyingGlassIcon className="h-4 w-auto" aria-hidden="true" />
-												<span className="text-sm font-medium">
-													Check result<span className="sr-only">, {id}</span>
-												</span>
-											</Link>
-										</td>
-										<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right sm:pr-0">
-											<button
-												onClick={() =>
-													setHistory(prevState => {
-														const newState = { ...prevState };
-														delete newState[id];
+								{Object.values(history || {})?.map(
+									({ id, language, time, google_cloud_vision_used, custom_dict_used }, index) => (
+										<tr key={`table-element-${id}-${index}`}>
+											<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+												{id}
+											</td>
+											<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{LANGUAGES[language]}</td>
+											<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+												{custom_dict_used
+													? `${custom_dict_used?.filename} | (${capitalizeString(custom_dict_used?.usage_type)})`
+													: 'No custom dictionary used'}
+											</td>
+											<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+												{google_cloud_vision_used ? 'Used' : 'Not used'}
+											</td>
+											<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{time}</td>
+											<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right">
+												<Link
+													to={`/${HISTORY}/${id}`}
+													target="_blank"
+													className="inline-flex items-center gap-x-2 text-indigo-600 hover:text-indigo-900"
+												>
+													<DocumentMagnifyingGlassIcon className="h-4 w-auto" aria-hidden="true" />
+													<span className="text-sm font-medium">
+														Check result<span className="sr-only">, {id}</span>
+													</span>
+												</Link>
+											</td>
+											<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right sm:pr-0">
+												<button
+													onClick={() =>
+														setHistory(prevState => {
+															const newState = { ...prevState };
+															delete newState[id];
 
-														return newState;
-													})
-												}
-												className="inline-flex items-center gap-x-2 text-red-600 hover:text-red-900"
-											>
-												<TrashIcon className="h-4 w-auto" aria-hidden="true" />
-												<span className="text-sm font-medium">
-													Delete record<span className="sr-only">, {id}</span>
-												</span>
-											</button>
-										</td>
-									</tr>
-								))}
+															return newState;
+														})
+													}
+													className="inline-flex items-center gap-x-2 text-red-600 hover:text-red-900"
+												>
+													<TrashIcon className="h-4 w-auto" aria-hidden="true" />
+													<span className="text-sm font-medium">
+														Delete record<span className="sr-only">, {id}</span>
+													</span>
+												</button>
+											</td>
+										</tr>
+									)
+								)}
 							</tbody>
 						</table>
 					</div>

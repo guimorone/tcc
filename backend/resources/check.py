@@ -2,6 +2,9 @@ import os
 import re
 import json
 import traceback
+import cv2
+import pytesseract
+import numpy as np
 from io import BytesIO
 from base64 import b64encode
 from PIL import Image, ImageDraw
@@ -52,11 +55,72 @@ class Check(Resource):
         except:
             return None
 
-    def process_screenshot(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
-        # Quando tiver outra biblioteca ou serviço, essa linha de baixo não existirá (openCV talvez)
-        if not self.use_google_cloud_vision:
-            raise BackendError('Google Cloud Vision is required to process images')
+    def check_if_word_is_correct(self, word: str, dictionary: MultiDictionary) -> bool:
+        word = word.strip().lower()
+        if not word or word in self.ignore_words or ignore_word(word):
+            return True
 
+        # double check if we ignore the word
+        word = re.sub(r'[^\w\s$]|[\dº]', '', word)
+        if not word or word in self.ignore_words or ignore_word(word):
+            return True
+
+        # Classification = [Noun, Verb, Adjective, etc].
+        if self.custom_dict and len(self.custom_dict) > 0:
+            if self.dict_usage_type == 'complement':
+                classification, _, _ = dictionary.meaning(self.language, word)
+                if (classification and len(classification) > 0) or (word in self.custom_dict):
+                    return True
+            # Replacement
+            elif word in self.custom_dict:
+                return True
+        else:
+            classification, _, _ = dictionary.meaning(self.language, word)
+            if classification and len(classification) > 0:
+                return True
+
+        return False
+
+    def open_cv_process(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
+        tesseract_path = os.environ.get('TESSERACT_PATH')
+        if not tesseract_path:
+            raise BackendError('Tesseract path is required')
+
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        content = screenshot.read()
+
+        # CV2
+        nparr = np.fromstring(content, np.uint8)
+        img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        gray = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
+        ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
+        rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 18))
+        # Applying dilation on the threshold image
+        dilation = cv2.dilate(thresh1, rect_kernel, iterations=1)
+        # Finding contours
+        contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+        dictionary = MultiDictionary()
+        incorrect_words = []
+        bounds = []
+        for cnt in contours:
+            x, y, width, height = cv2.boundingRect(cnt)
+            cropped = img_np[y : y + height, x : x + width]
+            text = pytesseract.image_to_string(cropped)
+            if self.check_if_word_is_correct(text, dictionary):
+                continue
+
+            word = text.strip().lower()
+            if word not in incorrect_words:
+                incorrect_words.append(word)
+
+            bounds.append([(x, y), (x + width, y), (x + width, y + height), (x, y + height)])
+
+        drawn_image = self.draw_missing_words(Image.open(screenshot), bounds)
+
+        return screenshot.filename, incorrect_words, drawn_image
+
+    def google_process(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
         client = self.get_google_vision_client()
         content = screenshot.read()
         image = vision.Image(content=content)
@@ -72,31 +136,10 @@ class Check(Resource):
         incorrect_words = []
         bounds = []
         for text in texts:
+            if self.check_if_word_is_correct(text.description, dictionary):
+                continue
+
             word = text.description.strip().lower()
-            if word in self.ignore_words or ignore_word(word):
-                continue
-
-            word = re.sub(r'[^\w\s$]|[\dº]', '', word)
-            if not word:
-                continue
-
-            # Classification = [Noun, Verb, Adjective, etc].
-            if self.custom_dict and len(self.custom_dict) > 0:
-                if self.dict_usage_type == 'complement':
-                    classification, _, _ = dictionary.meaning(self.language, word)
-                    if (classification and len(classification) > 0) or (word in self.custom_dict):
-                        # Word is correct
-                        continue
-                # Replacement
-                elif word in self.custom_dict:
-                    # Word is correct
-                    continue
-            else:
-                classification, _, _ = dictionary.meaning(self.language, word)
-                if classification and len(classification) > 0:
-                    # Word is correct
-                    continue
-
             if word not in incorrect_words:
                 incorrect_words.append(word)
             bounds.append([(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices])
@@ -104,6 +147,12 @@ class Check(Resource):
         drawn_image = self.draw_missing_words(Image.open(screenshot), bounds)
 
         return screenshot.filename, incorrect_words, drawn_image
+
+    def process_screenshot(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
+        if not self.use_google_cloud_vision:
+            return self.open_cv_process(screenshot)
+
+        return self.google_process(screenshot)
 
     def post(self) -> Tuple[Dict[str, Any], int]:
         try:
