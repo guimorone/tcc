@@ -34,7 +34,8 @@ cd backend && pyenv virtualenv X.X.X venv-name && pyenv activate venv-name
 ```
 
 - Atualize o arquivo `.env`.
-  Para isso, se você não quiser utilizar o Google Cloud Vision, você terá que baixar o executável na sua máquina e passar o caminho completo no arquivo `.env`. Segue links para instalação abaixo:
+  Para isso, se você não quiser utilizar o Google Cloud Vision, você terá que baixar o executável do Tesseract-OCR na sua máquina e passar o caminho completo no arquivo `.env`. O nome da variável é `TESSERACT_PATH`, como pode ser visto em `.env.template`.
+  Segue links para instalação abaixo:
 
 1. [Debian/Ubuntu](https://github.com/tesseract-ocr/tesseract/releases)
 2. [Windows](https://github.com/UB-Mannheim/tesseract/wiki)
