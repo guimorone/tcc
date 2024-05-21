@@ -130,6 +130,9 @@ const Settings: FC = () => {
 				</div>
 				<ul role="list" className="text-red-600 text-sm font-medium space-y-1 list-disc list-inside">
 					BE CAREFUL:
+					<li className="text-xs font-normal">
+						Import a config file will overwrite all other data that you had before!
+					</li>
 					<li className="text-xs font-normal">Exporting the data will NOT export the dictionaries with you!</li>
 					<li className="text-xs font-normal">
 						Clearing the data will exclude all your recordes, including the processing history!

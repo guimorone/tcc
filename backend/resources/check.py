@@ -29,7 +29,7 @@ class Check(Resource):
             raise BackendError('Invalid Google Service Account Credentials: \n{}'.format(str(err)))
 
     def draw_missing_words(self, image: Image, bounds: List[List[Tuple[float, float]]]) -> bytes | None:
-        offset = 3
+        offset = 5
         try:
             draw = ImageDraw.Draw(image)
             for vertices in bounds:
@@ -107,12 +107,25 @@ class Check(Resource):
             x, y, width, height = cv2.boundingRect(cnt)
             cropped = img_np[y : y + height, x : x + width]
             text = pytesseract.image_to_string(cropped)
-            if self.check_if_word_is_correct(text, dictionary):
-                continue
-
             word = text.strip().lower()
-            if word not in incorrect_words:
-                incorrect_words.append(word)
+            texts = word.split()
+            if len(texts) > 1:
+                all_correct = True
+                for t in texts:
+                    if self.check_if_word_is_correct(t, dictionary):
+                        continue
+
+                    all_correct = False
+                    if t not in incorrect_words:
+                        incorrect_words.append(t)
+                if all_correct:
+                    continue
+            else:
+                if self.check_if_word_is_correct(word, dictionary):
+                    continue
+
+                if word not in incorrect_words:
+                    incorrect_words.append(word)
 
             bounds.append([(x, y), (x + width, y), (x + width, y + height), (x, y + height)])
 
@@ -136,12 +149,26 @@ class Check(Resource):
         incorrect_words = []
         bounds = []
         for text in texts:
-            if self.check_if_word_is_correct(text.description, dictionary):
-                continue
-
             word = text.description.strip().lower()
-            if word not in incorrect_words:
-                incorrect_words.append(word)
+            word_splitted = word.split()
+            if len(word_splitted) > 1:
+                all_correct = True
+                for w in word_splitted:
+                    if self.check_if_word_is_correct(w, dictionary):
+                        continue
+
+                    all_correct = False
+                    if w not in incorrect_words:
+                        incorrect_words.append(w)
+                if all_correct:
+                    continue
+            else:
+                if self.check_if_word_is_correct(word, dictionary):
+                    continue
+
+                if word not in incorrect_words:
+                    incorrect_words.append(word)
+
             bounds.append([(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices])
 
         drawn_image = self.draw_missing_words(Image.open(screenshot), bounds)
@@ -165,14 +192,16 @@ class Check(Resource):
                 raise BackendError('Language is required')
 
             self.use_google_cloud_vision: bool = json.loads(request.form.get('use_google_cloud_vision', 'true'))
-            try:
-                self.google_service_account_credentials: Dict[str, str] | None = json.loads(
-                    request.form.get('google_service_account_credentials', 'null')
-                )
-                if self.use_google_cloud_vision and not self.google_service_account_credentials:
-                    raise BackendError('Google Service Account Credentials are required')
-            except:
-                raise BackendError('Invalid Google Service Account Credentials')
+            self.google_service_account_credentials: Dict[str, str] | None = None
+            if self.use_google_cloud_vision:
+                try:
+                    self.google_service_account_credentials: Dict[str, str] | None = json.loads(
+                        request.form.get('google_service_account_credentials', 'null')
+                    )
+                    if not self.google_service_account_credentials:
+                        raise BackendError('Google Service Account Credentials are required')
+                except:
+                    raise BackendError('Invalid Google Service Account Credentials')
 
             dict_file: FileStorage | None = request.files.get('dict_file', None)
             self.dict_usage_type: Literal['complement', 'replacement'] = request.form.get(
@@ -184,6 +213,7 @@ class Check(Resource):
                 'time': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
                 'language': self.language,
                 'images': [],
+                'ignore_words': self.ignore_words,
                 'google_cloud_vision_used': self.use_google_cloud_vision,
                 'custom_dict_used': (
                     {'filename': dict_file.filename, 'usage_type': self.dict_usage_type} if dict_file else None

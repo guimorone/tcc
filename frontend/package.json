@@ -14,7 +14,7 @@
     "@headlessui/react": "^1.7.19",
     "@heroicons/react": "^2.1.3",
     "@tanstack/react-query": "^5.37.1",
-    "axios": "^1.6.8",
+    "axios": "^1.7.1",
     "flowbite": "^2.2.0",
     "flowbite-react": "^0.7.8",
     "localforage": "^1.10.0",

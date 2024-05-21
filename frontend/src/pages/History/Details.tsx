@@ -34,6 +34,12 @@ const Details: FC<DetailsProps> = ({ id, details }) => {
 			<h3 className="text-xs text-gray-700">
 				<b>Google Cloud Vision &rarr;</b> {details.google_cloud_vision_used ? 'Used' : 'Not used'}
 			</h3>
+			{details.ignore_words && details.ignore_words.length > 0 && (
+				<h3 className="text-xs text-gray-700">
+					<b>Ignored Words &rarr;</b> {details.ignore_words.join(', ')}
+				</h3>
+			)}
+			<p className="text-xs text-yellow-400">Some words may seem “strange” due to the icons present in the images</p>
 			<div className="space-y-4 divide-y-2 divide-indigo-600 divide-dashed">
 				{details?.images?.map(({ filename, words, image }, index) => (
 					<div key={`result-${filename}-${index}`} className="space-y-4">

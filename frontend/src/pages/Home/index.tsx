@@ -118,7 +118,10 @@ const Home: FC = () => {
 					className="relative h-56 sm:h-64 xl:h-80 2xl:h-96 bg-gray-900 rounded-md shadow w-full mx-auto"
 				>
 					{files?.map((file, index) => (
-						<div className={classNames(sendImageMutations.isPending && 'opacity-50', 'space-y-4')}>
+						<div
+							key={`preview-${file.name}-${index}`}
+							className={classNames(sendImageMutations.isPending && 'opacity-50', 'space-y-4')}
+						>
 							<h3 className="text-white text-base font-semibold leading-6">Image {index + 1} Preview</h3>
 							<p className="text-sm text-gray-200">{file.name}</p>
 							{previews[index] && (
