@@ -7,7 +7,6 @@ export async function httpRequest(
 	method: Method,
 	additionalConfig?: AxiosRequestConfig<any>
 ): Promise<any> {
-	0;
 	const url = `/${endpoint}`;
 	const config = { method, ...additionalConfig };
 

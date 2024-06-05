@@ -12,7 +12,7 @@ localforage.config({
 	version: 1.0, // Database version
 	description: 'Local storage for the app', // Description for the database
 	size: 10 * 1024 * 1024, // Size of the database in bytes (10 MB in this example)
-	driver: [localforage.WEBSQL, localforage.INDEXEDDB, localforage.LOCALSTORAGE], // Preferred storage drivers in order
+	driver: [localforage.INDEXEDDB, localforage.WEBSQL, localforage.LOCALSTORAGE], // Preferred storage drivers in order
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
