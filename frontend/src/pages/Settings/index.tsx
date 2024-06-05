@@ -135,7 +135,7 @@ const Settings: FC = () => {
 					</li>
 					<li className="text-xs font-normal">Exporting the data will NOT export the dictionaries with you!</li>
 					<li className="text-xs font-normal">
-						Clearing the data will exclude all your recordes, including the processing history!
+						Clearing the data will exclude all your records, including the processing history!
 					</li>
 				</ul>
 			</div>

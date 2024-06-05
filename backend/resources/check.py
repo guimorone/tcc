@@ -1,13 +1,10 @@
 import os
-import re
 import json
 import traceback
 import cv2
 import pytesseract
 import numpy as np
-from io import BytesIO
-from base64 import b64encode
-from PIL import Image, ImageDraw
+from PIL import Image
 from datetime import datetime
 from uuid import uuid4
 from typing import List, Dict, Tuple, Any, Literal
@@ -15,8 +12,7 @@ from flask_restful import Resource, request
 from flask_restful.reqparse import FileStorage
 from google.cloud import vision
 from google.oauth2 import service_account
-from PyMultiDictionary import MultiDictionary
-from utils.misc import ignore_word
+from utils.misc import check_if_word_is_correct, draw_missing_words
 from utils.exceptions import BackendError
 
 
@@ -27,59 +23,6 @@ class Check(Resource):
             return vision.ImageAnnotatorClient(credentials=credentials)
         except Exception as err:
             raise BackendError('Invalid Google Service Account Credentials: \n{}'.format(str(err)))
-
-    def draw_missing_words(self, image: Image, bounds: List[List[Tuple[float, float]]]) -> bytes | None:
-        offset = 5
-        try:
-            draw = ImageDraw.Draw(image)
-            for vertices in bounds:
-                width, height = image.size
-                if len(vertices) != 4:
-                    continue
-                x1, y1 = vertices[0]
-                if x1 > offset:
-                    x1 -= offset
-                if y1 > offset:
-                    y1 -= offset
-                x2, y2 = vertices[2]
-                if x2 < width - offset:
-                    x2 += offset
-                if y2 < height - offset:
-                    y2 += offset
-                draw.rectangle([x1, y1, x2, y2], outline='red', width=2)
-
-            buffer = BytesIO()
-            image.save(buffer, format='PNG')
-
-            return b64encode(buffer.getvalue())
-        except:
-            return None
-
-    def check_if_word_is_correct(self, word: str, dictionary: MultiDictionary) -> bool:
-        word = word.strip().lower()
-        if not word or word in self.ignore_words or ignore_word(word):
-            return True
-
-        # double check if we ignore the word
-        word = re.sub(r'[^\w\s$]|[\dº]', '', word)
-        if not word or word in self.ignore_words or ignore_word(word):
-            return True
-
-        # Classification = [Noun, Verb, Adjective, etc].
-        if self.custom_dict and len(self.custom_dict) > 0:
-            if self.dict_usage_type == 'complement':
-                classification, _, _ = dictionary.meaning(self.language, word)
-                if (classification and len(classification) > 0) or (word in self.custom_dict):
-                    return True
-            # Replacement
-            elif word in self.custom_dict:
-                return True
-        else:
-            classification, _, _ = dictionary.meaning(self.language, word)
-            if classification and len(classification) > 0:
-                return True
-
-        return False
 
     def open_cv_process(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
         tesseract_path = os.environ.get('TESSERACT_PATH')
@@ -100,7 +43,6 @@ class Check(Resource):
         # Finding contours
         contours, _ = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-        dictionary = MultiDictionary()
         incorrect_words = []
         bounds = []
         for cnt in contours:
@@ -112,7 +54,9 @@ class Check(Resource):
             if len(texts) > 1:
                 all_correct = True
                 for t in texts:
-                    if self.check_if_word_is_correct(t, dictionary):
+                    if check_if_word_is_correct(
+                        t, self.language, self.custom_dict, self.dict_usage_type, self.ignore_words
+                    ):
                         continue
 
                     all_correct = False
@@ -121,7 +65,9 @@ class Check(Resource):
                 if all_correct:
                     continue
             else:
-                if self.check_if_word_is_correct(word, dictionary):
+                if check_if_word_is_correct(
+                    word, self.language, self.custom_dict, self.dict_usage_type, self.ignore_words
+                ):
                     continue
 
                 if word not in incorrect_words:
@@ -129,7 +75,7 @@ class Check(Resource):
 
             bounds.append([(x, y), (x + width, y), (x + width, y + height), (x, y + height)])
 
-        drawn_image = self.draw_missing_words(Image.open(screenshot), bounds)
+        drawn_image = draw_missing_words(Image.open(screenshot), bounds)
 
         return screenshot.filename, incorrect_words, drawn_image
 
@@ -145,7 +91,6 @@ class Check(Resource):
             )
 
         texts = response.text_annotations
-        dictionary = MultiDictionary()
         incorrect_words = []
         bounds = []
         for text in texts:
@@ -154,7 +99,9 @@ class Check(Resource):
             if len(word_splitted) > 1:
                 all_correct = True
                 for w in word_splitted:
-                    if self.check_if_word_is_correct(w, dictionary):
+                    if check_if_word_is_correct(
+                        w, self.language, self.custom_dict, self.dict_usage_type, self.ignore_words
+                    ):
                         continue
 
                     all_correct = False
@@ -163,7 +110,9 @@ class Check(Resource):
                 if all_correct:
                     continue
             else:
-                if self.check_if_word_is_correct(word, dictionary):
+                if check_if_word_is_correct(
+                    word, self.language, self.custom_dict, self.dict_usage_type, self.ignore_words
+                ):
                     continue
 
                 if word not in incorrect_words:
@@ -171,7 +120,7 @@ class Check(Resource):
 
             bounds.append([(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices])
 
-        drawn_image = self.draw_missing_words(Image.open(screenshot), bounds)
+        drawn_image = draw_missing_words(Image.open(screenshot), bounds)
 
         return screenshot.filename, incorrect_words, drawn_image
 
@@ -181,60 +130,72 @@ class Check(Resource):
 
         return self.google_process(screenshot)
 
-    def post(self) -> Tuple[Dict[str, Any], int]:
-        try:
-            screenshots = request.files.getlist('images')
-            if not screenshots or not len(screenshots):
-                raise BackendError('At least one image is required')
+    def image_request(self) -> Tuple[Dict[str, Any], int]:
+        screenshots = request.files.getlist('images')
+        if not screenshots or not len(screenshots):
+            raise BackendError('At least one image is required')
 
-            self.language: str = request.form.get('language', '')
-            if not self.language:
-                raise BackendError('Language is required')
+        self.language: str = request.form.get('language', '')
+        if not self.language:
+            raise BackendError('Language is required')
 
-            self.use_google_cloud_vision: bool = json.loads(request.form.get('use_google_cloud_vision', 'true'))
-            self.google_service_account_credentials: Dict[str, str] | None = None
-            if self.use_google_cloud_vision:
-                try:
-                    self.google_service_account_credentials: Dict[str, str] | None = json.loads(
-                        request.form.get('google_service_account_credentials', 'null')
-                    )
-                    if not self.google_service_account_credentials:
-                        raise BackendError('Google Service Account Credentials are required')
-                except:
-                    raise BackendError('Invalid Google Service Account Credentials')
-
-            dict_file: FileStorage | None = request.files.get('dict_file', None)
-            self.dict_usage_type: Literal['complement', 'replacement'] = request.form.get(
-                'dict_usage_type', 'complement'
-            )
-            self.ignore_words: List[str] = json.loads(request.form.get('ignore_words', '[]'))
-            data = {
-                'id': str(uuid4()),
-                'time': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
-                'language': self.language,
-                'images': [],
-                'ignore_words': self.ignore_words,
-                'google_cloud_vision_used': self.use_google_cloud_vision,
-                'custom_dict_used': (
-                    {'filename': dict_file.filename, 'usage_type': self.dict_usage_type} if dict_file else None
-                ),
-            }
-            self.custom_dict: List[str] | None = None
-            if dict_file:
-                lines = dict_file.read().splitlines()
-                self.custom_dict = [line.decode('utf-8').strip().lower() for line in lines]
-
-            for screenshot in screenshots:
-                filename, incorrect_words, drawn_image = self.process_screenshot(screenshot)
-                data['images'].append(
-                    {
-                        'filename': filename,
-                        'words': incorrect_words,
-                        'image': drawn_image.decode('utf-8') if drawn_image else None,
-                    }
+        self.use_google_cloud_vision: bool = json.loads(request.form.get('use_google_cloud_vision', 'true'))
+        self.google_service_account_credentials: Dict[str, str] | None = None
+        if self.use_google_cloud_vision:
+            try:
+                self.google_service_account_credentials: Dict[str, str] | None = json.loads(
+                    request.form.get('google_service_account_credentials', 'null')
                 )
+                if not self.google_service_account_credentials:
+                    raise BackendError('Google Service Account Credentials are required')
+            except:
+                raise BackendError('Invalid Google Service Account Credentials')
 
-            return data, 200
+        dict_file: FileStorage | None = request.files.get('dict_file', None)
+        self.dict_usage_type: Literal['complement', 'replacement'] = request.form.get('dict_usage_type', 'complement')
+        self.ignore_words: List[str] = json.loads(request.form.get('ignore_words', '[]'))
+        data = {
+            'id': str(uuid4()),
+            'time': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
+            'language': self.language,
+            'type': 'image',
+            'files': [],
+            'ignore_words': self.ignore_words,
+            'google_cloud_vision_used': self.use_google_cloud_vision,
+            'custom_dict_used': (
+                {'filename': dict_file.filename, 'usage_type': self.dict_usage_type} if dict_file else None
+            ),
+        }
+        self.custom_dict: List[str] | None = None
+        if dict_file:
+            lines = dict_file.read().splitlines()
+            self.custom_dict = [line.decode('utf-8').strip().lower() for line in lines]
+
+        for screenshot in screenshots:
+            filename, incorrect_words, drawn_image = self.process_screenshot(screenshot)
+            data['files'].append(
+                {
+                    'filename': filename,
+                    'words': incorrect_words,
+                    'image': drawn_image.decode('utf-8') if drawn_image else None,
+                }
+            )
+
+        return data, 200
+
+    def dump_request(self) -> Tuple[Dict[str, Any], int]:
+        return {'message': 'Not implemented yet'}, 501
+
+    def post(self, request_type: str = '') -> Tuple[Dict[str, Any], int]:
+        available_request_types = {'image', 'dump'}
+        if request_type not in available_request_types:
+            return {'message': 'Invalid request type'}, 404
+
+        try:
+            if request_type == 'image':
+                return self.image_request()
+
+            return self.dump_request()
         except BackendError as err:
             return {'message': str(err)}, 400
         except:

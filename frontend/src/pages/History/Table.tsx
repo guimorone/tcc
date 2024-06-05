@@ -20,7 +20,9 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 			<div className="sm:flex sm:items-center space-y-4 sm:space-y-0 sm:gap-x-16">
 				<div className="sm:flex-auto space-y-2">
 					<h1 className="text-base font-semibold leading-6 text-gray-900">Results</h1>
-					<p className="text-sm text-gray-700">Check out the records of the images you have processed on this device</p>
+					<p className="text-sm text-gray-700">
+						Check out the records of the images or dumps you have processed on this device
+					</p>
 				</div>
 				<div className="sm:flex-none">
 					<button
@@ -39,19 +41,40 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 						<table className="min-w-full divide-y divide-gray-300">
 							<thead>
 								<tr>
-									<th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+									<th
+										scope="col"
+										className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 whitespace-nowrap"
+									>
 										ID
 									</th>
-									<th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+									<th
+										scope="col"
+										className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
+									>
 										Language
 									</th>
-									<th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+									<th
+										scope="col"
+										className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
+									>
+										Type
+									</th>
+									<th
+										scope="col"
+										className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
+									>
 										Custom Dictionary
 									</th>
-									<th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+									<th
+										scope="col"
+										className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
+									>
 										Google Cloud Vision
 									</th>
-									<th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+									<th
+										scope="col"
+										className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
+									>
 										Time
 									</th>
 									<th scope="col" className="relative py-3.5 pl-3 pr-4">
@@ -64,12 +87,13 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 							</thead>
 							<tbody className="divide-y divide-gray-200">
 								{Object.values(history || {})?.map(
-									({ id, language, time, google_cloud_vision_used, custom_dict_used }, index) => (
+									({ id, language, type, time, google_cloud_vision_used, custom_dict_used }, index) => (
 										<tr key={`table-element-${id}-${index}`}>
 											<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
 												{id}
 											</td>
 											<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{LANGUAGES[language]}</td>
+											<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{capitalizeString(type)}</td>
 											<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
 												{custom_dict_used
 													? `${custom_dict_used?.filename} | (${capitalizeString(custom_dict_used?.usage_type)})`

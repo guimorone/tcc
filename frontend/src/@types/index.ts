@@ -70,7 +70,8 @@ export type ResultType = {
 	id: string;
 	language: LanguagesKeys;
 	time: string;
-	images: { filename: string; words: string[]; image: string | null }[];
+	type: 'image' | 'dump';
+	files: { filename: string; words: string[]; image: string | null }[];
 	google_cloud_vision_used: boolean;
 	ignore_words: string[];
 	custom_dict_used: { filename: string; usage_type: DictUsageType } | null;

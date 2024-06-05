@@ -21,6 +21,9 @@ const Details: FC<DetailsProps> = ({ id, details }) => {
 			<h3 className="text-xs text-gray-700">
 				<b>Language &rarr;</b> {LANGUAGES[language]}
 			</h3>
+			<h3 className="text-xs text-gray-700">
+				<b>Type &rarr;</b> {capitalizeString(details.type)}
+			</h3>
 			{details.custom_dict_used ? (
 				<h3 className="text-xs text-gray-700">
 					<b>Custom Dictionary &rarr;</b> {details.custom_dict_used.filename} |{' '}
@@ -41,7 +44,7 @@ const Details: FC<DetailsProps> = ({ id, details }) => {
 			)}
 			<p className="text-xs text-yellow-400">Some words may seem “strange” due to the icons present in the images</p>
 			<div className="space-y-4 divide-y-2 divide-indigo-600 divide-dashed">
-				{details?.images?.map(({ filename, words, image }, index) => (
+				{details?.files?.map(({ filename, words, image }, index) => (
 					<div key={`result-${filename}-${index}`} className="space-y-4">
 						<h3 className={classNames(index > 0 && 'mt-8', 'text-lg font-semibold leading-6 text-gray-900')}>
 							{filename}
