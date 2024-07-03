@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { DocumentMagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { TrashIcon } from '@heroicons/react/20/solid';
-import { checkIfObjectIsEmpty, capitalizeString } from '../../utils';
+import { checkIfObjectIsEmpty, capitalizeString, classNames } from '../../utils';
 import { LANGUAGES } from '../../constants';
 import { HISTORY } from '../../constants/paths';
 import type { FC } from 'react';
@@ -14,6 +14,16 @@ interface TableProps {
 
 const Table: FC<TableProps> = ({ history, setHistory }) => {
 	const clearHistory = (): void => setHistory({});
+	const columns = [
+		{ name: 'ID', isButton: false },
+		{ name: 'Language', isButton: false },
+		{ name: 'Type', isButton: false },
+		{ name: 'Custom Dictionary', isButton: false },
+		{ name: 'Google Cloud Vision', isButton: false },
+		{ name: 'Time', isButton: false },
+		{ name: 'Check Result', isButton: true },
+		{ name: 'Delete Record', isButton: true },
+	];
 
 	return (
 		<div className="space-y-8">
@@ -41,48 +51,28 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 						<table className="min-w-full divide-y divide-gray-300">
 							<thead>
 								<tr>
-									<th
-										scope="col"
-										className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0 whitespace-nowrap"
-									>
-										ID
-									</th>
-									<th
-										scope="col"
-										className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
-									>
-										Language
-									</th>
-									<th
-										scope="col"
-										className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
-									>
-										Type
-									</th>
-									<th
-										scope="col"
-										className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
-									>
-										Custom Dictionary
-									</th>
-									<th
-										scope="col"
-										className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
-									>
-										Google Cloud Vision
-									</th>
-									<th
-										scope="col"
-										className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap"
-									>
-										Time
-									</th>
-									<th scope="col" className="relative py-3.5 pl-3 pr-4">
-										<span className="sr-only">Check result</span>
-									</th>
-									<th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
-										<span className="sr-only">Delete record</span>
-									</th>
+									{columns?.map(({ name, isButton }, index) =>
+										isButton ? (
+											<th
+												key={`table-column-button-${name}-${index}`}
+												scope="col"
+												className={classNames(index === columns.length - 1 && 'sm:pr-0', 'relative py-3.5 pl-3 pr-4')}
+											>
+												<span className="sr-only">{name}</span>
+											</th>
+										) : (
+											<th
+												key={`table-column-${name}-${index}`}
+												scope="col"
+												className={classNames(
+													index === 0 && 'sm:pl-0',
+													'py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 whitespace-nowrap'
+												)}
+											>
+												{name}
+											</th>
+										)
+									)}
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-gray-200">
@@ -111,7 +101,7 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 												>
 													<DocumentMagnifyingGlassIcon className="h-4 w-auto" aria-hidden="true" />
 													<span className="text-sm font-medium">
-														Check result<span className="sr-only">, {id}</span>
+														Check Result<span className="sr-only">, {id}</span>
 													</span>
 												</Link>
 											</td>
@@ -129,7 +119,7 @@ const Table: FC<TableProps> = ({ history, setHistory }) => {
 												>
 													<TrashIcon className="h-4 w-auto" aria-hidden="true" />
 													<span className="text-sm font-medium">
-														Delete record<span className="sr-only">, {id}</span>
+														Delete Record<span className="sr-only">, {id}</span>
 													</span>
 												</button>
 											</td>

@@ -150,7 +150,7 @@ const ImageProcesser: FC = () => {
 			)}
 			<div className="flex items-start justify-center gap-x-12">
 				<Select
-					title="Target language"
+					title="Target Language"
 					options={Object.keys(LANGUAGES).map(key => ({
 						value: key,
 						label: (LANGUAGES as { [key: string]: string })[key],

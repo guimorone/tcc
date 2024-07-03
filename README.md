@@ -6,7 +6,7 @@ TCC
 
 - Python v3.12.3
 - pip v24.0
-- Node.js v22.2.0
+- Node.js v22.3.0
 - npm v10.8.1
 
 ## Desenvolvimento local
