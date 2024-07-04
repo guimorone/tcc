@@ -1,7 +1,7 @@
 import re
-from typing import List, Optional, Literal, Tuple
 from io import BytesIO
 from base64 import b64encode
+from typing import List, Optional, Literal, Tuple
 from PIL import Image, ImageDraw
 from PyMultiDictionary import MultiDictionary
 
@@ -23,7 +23,7 @@ def check_if_word_is_correct(
     if not word or word in ignore_words or ignore_word(word):
         return True
 
-    # double check if we ignore the word
+    # double check if we ignore the word after regex sub
     word = re.sub(r'[^\w\s$]|[\dº]', '', word)
     if not word or word in ignore_words or ignore_word(word):
         return True
@@ -62,11 +62,13 @@ def draw_missing_words(
             width, height = image.size
             if len(vertices) != 4:
                 continue
+            # top-left corner
             x1, y1 = vertices[0]
             if x1 > offset:
                 x1 -= offset
             if y1 > offset:
                 y1 -= offset
+            # bottom-right corner
             x2, y2 = vertices[2]
             if x2 < width - offset:
                 x2 += offset

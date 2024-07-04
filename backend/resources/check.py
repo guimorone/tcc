@@ -4,14 +4,14 @@ import traceback
 import cv2
 import pytesseract
 import numpy as np
+from uuid import uuid4
 from PIL import Image
 from datetime import datetime
-from uuid import uuid4
 from typing import List, Dict, Tuple, Any, Literal
 from flask_restful import Resource, request
 from flask_restful.reqparse import FileStorage
 from google.cloud import vision
-from google.oauth2 import service_account
+from google.oauth2.service_account import Credentials
 from utils.misc import check_if_word_is_correct, draw_missing_words
 from utils.exceptions import BackendError
 
@@ -19,12 +19,12 @@ from utils.exceptions import BackendError
 class Check(Resource):
     def get_google_vision_client(self) -> vision.ImageAnnotatorClient:
         try:
-            credentials = service_account.Credentials.from_service_account_info(self.google_service_account_credentials)
+            credentials = Credentials.from_service_account_info(self.google_service_account_credentials)
             return vision.ImageAnnotatorClient(credentials=credentials)
         except Exception as err:
             raise BackendError('Invalid Google Service Account Credentials: \n{}'.format(str(err)))
 
-    def open_cv_process(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
+    def opencv_process(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
         tesseract_path = os.environ.get('TESSERACT_PATH')
         if not tesseract_path:
             raise BackendError('Tesseract path is required')
@@ -126,7 +126,7 @@ class Check(Resource):
 
     def process_screenshot(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
         if not self.use_google_cloud_vision:
-            return self.open_cv_process(screenshot)
+            return self.opencv_process(screenshot)
 
         return self.google_process(screenshot)
 
