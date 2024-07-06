@@ -187,15 +187,12 @@ class Check(Resource):
         return {'message': 'Not implemented yet'}, 501
 
     def post(self, request_type: str = '') -> Tuple[Dict[str, Any], int]:
-        available_request_types = {'image', 'dump'}
+        available_request_types = {'image': self.image_request, 'dump': self.dump_request}
         if request_type not in available_request_types:
-            return {'message': 'Invalid request type'}, 404
+            return {'message': 'Invalid Request Type'}, 404
 
         try:
-            if request_type == 'image':
-                return self.image_request()
-
-            return self.dump_request()
+            return available_request_types[request_type]()
         except BackendError as err:
             return {'message': str(err)}, 400
         except:

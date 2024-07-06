@@ -136,7 +136,9 @@ const ImageProcesser: FC = () => {
 									{sendImageMutations.isPending && (
 										<div className="absolute inset-0 z-10 space-y-4 bg-white/30 w-fit h-fit m-auto p-4 backdrop-blur-sm">
 											<Spinner size="lg" />
-											<p className="motion-safe:animate-pulse text-base text-gray-200">The image is being processed</p>
+											<p className="motion-safe:animate-pulse text-base text-gray-200">
+												The {files?.length === 1 ? 'image is' : 'images are'} being processed
+											</p>
 											<p className="motion-safe:animate-pulse text-sm text-gray-300 font-medium">
 												This may take a while...
 											</p>
