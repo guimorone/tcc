@@ -192,7 +192,7 @@ const ImageProcesser: FC = () => {
 							className="inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-gray-200 disabled:text-gray-600 disabled:hover:cursor-wait"
 						>
 							<PaperAirplaneIcon className="h-4 w-auto" aria-hidden="true" />
-							<span className="text-sm font-semibold">Send image</span>
+							<span className="text-sm font-semibold">Send {files?.length === 1 ? 'image' : 'images'}</span>
 						</button>
 					</div>
 				)}

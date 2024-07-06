@@ -49,7 +49,7 @@ cd backend && pyenv virtualenv X.X.X venv-name && pyenv activate venv-name
 - Em seguida, digite a linha de comando abaixo no terminal:
 
 ```sh
-  python app.py
+  python main.py
 ```
 
 Pronto, o backend irá rodar na URL `http://localhost:5000`.
