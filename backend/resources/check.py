@@ -25,7 +25,7 @@ class Check(Resource):
         except Exception as err:
             raise BackendError('Invalid Google Service Account Credentials: \n{}'.format(str(err)))
 
-    def opencv_process(self, screenshot: FileStorage, split_word: bool = True) -> Tuple[str, List[str], bytes | None]:
+    def opencv_process(self, screenshot: FileStorage, split_word: bool = False) -> Tuple[str, List[str], bytes | None]:
         tesseract_path = os.environ.get('TESSERACT_PATH')
         if not tesseract_path:
             raise BackendError('Tesseract path is required')
@@ -80,7 +80,7 @@ class Check(Resource):
 
         return screenshot.filename, incorrect_words, drawn_image
 
-    def google_process(self, screenshot: FileStorage, split_word: bool = True) -> Tuple[str, List[str], bytes | None]:
+    def google_process(self, screenshot: FileStorage, split_word: bool = False) -> Tuple[str, List[str], bytes | None]:
         client = self.get_google_vision_client()
         content = screenshot.read()
         image = vision.Image(content=content)
