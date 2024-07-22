@@ -6,10 +6,18 @@ TCC
 
 - Python v3.12.3
 - pip v24.0
-- Node.js v22.4.0
-- npm v10.8.1
+- Node.js v20.15.1
+- npm v10.8.2
 
 ## Desenvolvimento local
+
+### Docker
+
+Se possuir docker instalado, basta rodar o seguinte comando:
+
+```sh
+  docker compose up -d
+```
 
 ### Back-End
 
