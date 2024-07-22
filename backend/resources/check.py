@@ -6,7 +6,8 @@ import pytesseract
 import numpy as np
 from uuid import uuid4
 from PIL import Image
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from typing import List, Dict, Tuple, Any, Literal
 from flask_restful import Resource, request
 from flask_restful.reqparse import FileStorage
@@ -24,7 +25,7 @@ class Check(Resource):
         except Exception as err:
             raise BackendError('Invalid Google Service Account Credentials: \n{}'.format(str(err)))
 
-    def opencv_process(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
+    def opencv_process(self, screenshot: FileStorage, split_word: bool = True) -> Tuple[str, List[str], bytes | None]:
         tesseract_path = os.environ.get('TESSERACT_PATH')
         if not tesseract_path:
             raise BackendError('Tesseract path is required')
@@ -51,7 +52,15 @@ class Check(Resource):
             text = pytesseract.image_to_string(cropped)
             word = text.strip().lower()
             texts = word.split()
-            if len(texts) > 1:
+            if not split_word or len(texts) <= 1:
+                if check_if_word_is_correct(
+                    word, self.language, self.custom_dict, self.dict_usage_type, self.ignore_words
+                ):
+                    continue
+
+                if word not in incorrect_words:
+                    incorrect_words.append(word)
+            else:
                 all_correct = True
                 for t in texts:
                     if check_if_word_is_correct(
@@ -64,14 +73,6 @@ class Check(Resource):
                         incorrect_words.append(t)
                 if all_correct:
                     continue
-            else:
-                if check_if_word_is_correct(
-                    word, self.language, self.custom_dict, self.dict_usage_type, self.ignore_words
-                ):
-                    continue
-
-                if word not in incorrect_words:
-                    incorrect_words.append(word)
 
             bounds.append([(x, y), (x + width, y), (x + width, y + height), (x, y + height)])
 
@@ -79,7 +80,7 @@ class Check(Resource):
 
         return screenshot.filename, incorrect_words, drawn_image
 
-    def google_process(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
+    def google_process(self, screenshot: FileStorage, split_word: bool = True) -> Tuple[str, List[str], bytes | None]:
         client = self.get_google_vision_client()
         content = screenshot.read()
         image = vision.Image(content=content)
@@ -96,7 +97,15 @@ class Check(Resource):
         for text in texts:
             word = text.description.strip().lower()
             word_splitted = word.split()
-            if len(word_splitted) > 1:
+            if not split_word or len(word_splitted) <= 1:
+                if check_if_word_is_correct(
+                    word, self.language, self.custom_dict, self.dict_usage_type, self.ignore_words
+                ):
+                    continue
+
+                if word not in incorrect_words:
+                    incorrect_words.append(word)
+            else:
                 all_correct = True
                 for w in word_splitted:
                     if check_if_word_is_correct(
@@ -109,14 +118,6 @@ class Check(Resource):
                         incorrect_words.append(w)
                 if all_correct:
                     continue
-            else:
-                if check_if_word_is_correct(
-                    word, self.language, self.custom_dict, self.dict_usage_type, self.ignore_words
-                ):
-                    continue
-
-                if word not in incorrect_words:
-                    incorrect_words.append(word)
 
             bounds.append([(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices])
 
@@ -156,7 +157,9 @@ class Check(Resource):
         self.ignore_words: List[str] = json.loads(request.form.get('ignore_words', '[]'))
         data = {
             'id': str(uuid4()),
-            'time': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
+            'time': datetime.now(timezone.utc)
+            .astimezone(ZoneInfo('America/Recife'))
+            .strftime('%d/%m/%Y %H:%M:%S GMT%:z'),
             'language': self.language,
             'type': 'image',
             'files': [],
