@@ -1,20 +1,6 @@
-x-backend-commom: &backend-commom
+x-app-commom: &app-commom
   restart: always
   tty: true
-  ports:
-    - 5000:5000
-
-x-frontend-commom: &frontend-commom
-  restart: always
-  tty: true
-  ports:
-    - 5173:80
-  healthcheck:
-    test: ['CMD', 'curl', 'http://127.0.0.1:80']
-    interval: 5s
-    timeout: 15s
-    retries: 5
-    start_period: 10s
 
 services:
   backend:
@@ -22,11 +8,21 @@ services:
     build:
       context: ./backend
     image: tcc/backend
-    <<: *backend-commom
+    ports:
+      - 5000:5000
+    <<: *app-commom
 
   frontend:
     container_name: tcc-frontend
     build:
       context: ./frontend
     image: tcc/frontend
-    <<: *frontend-commom
+    ports:
+      - 5173:80
+    healthcheck:
+      test: ['CMD', 'curl', 'http://127.0.0.1:80']
+      interval: 5s
+      timeout: 15s
+      retries: 5
+      start_period: 10s
+    <<: *app-commom

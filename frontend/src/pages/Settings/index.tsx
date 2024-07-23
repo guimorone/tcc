@@ -66,7 +66,7 @@ const Settings: FC = () => {
 				data[key] = await localforage.getItem(key);
 			})
 		);
-		onDownloadJSONButtonClick(data, 'config.json');
+		onDownloadJSONButtonClick(data, 'config');
 		setIsLoading(false);
 	};
 	const clearData = async (): Promise<void> => {

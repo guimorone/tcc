@@ -10,4 +10,4 @@ RUN npm run build
 
 FROM nginx:stable-alpine
 COPY --from=build-step /frontend/dist /usr/share/nginx/html
-COPY deployment/nginx.default.conf /etc/nginx/conf.d/default.conf
+COPY /deployment/nginx.default.conf /etc/nginx/conf.d/default.conf

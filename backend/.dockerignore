@@ -1,7 +1,7 @@
 *.pyc
 *.pyo
 *.pyd
-*.env
+*.env*
 .gitignore
 .git/
 __pycache__/
@@ -9,4 +9,3 @@ __pycache__/
 .vscode/
 Dockerfile
 **/*.md
-docker-compose.yml
