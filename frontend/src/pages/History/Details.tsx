@@ -42,7 +42,9 @@ const Details: FC<DetailsProps> = ({ id, details }) => {
 					<b>Ignored Words &rarr;</b> {details.ignore_words.join(', ')}
 				</h3>
 			)}
-			<p className="text-xs text-yellow-400">Some words may seem “strange” due to the icons present in the images</p>
+			{details.type === 'image' && (
+				<p className="text-xs text-yellow-400">Some words may seem “strange” due to the icons present in the images</p>
+			)}
 			<div className="space-y-4 divide-y-2 divide-indigo-600 divide-dashed">
 				{details?.files?.map(({ filename, words, image }, index) => (
 					<div key={`result-${filename}-${index}`} className="space-y-4">

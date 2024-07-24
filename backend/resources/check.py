@@ -235,7 +235,7 @@ class Check(Resource):
 
         drawn_image = draw_missing_words(Image.open(image), bounds)
 
-        data['files'][0]['words'] = incorrect_words
+        data['files'][0]['words'] = list(set(incorrect_words))
         data['files'][0]['image'] = drawn_image.decode('utf-8') if drawn_image else None
 
         return data, 200

@@ -35,7 +35,8 @@ const GoogleCloudVision: FC = () => {
 						bring some weird results, mostly if you are checking words with latin letters, such as "Ç".
 					</Switch.Description>
 					<Switch.Description as="span" className="text-sm text-gray-500">
-						In case you are using the Dump Processing, we recommend that you turn this off. Otherwise, use it.
+						However, Tesseract OCR is also good and may get awesome results, mainly in Dump Processing. Choose the one
+						you feel best &#128521;.
 					</Switch.Description>
 				</span>
 				<Switch
