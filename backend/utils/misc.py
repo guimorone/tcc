@@ -1,9 +1,11 @@
 import re
+import xml.etree.ElementTree as ET
 from io import BytesIO
 from base64 import b64encode
 from typing import List, Optional, Literal, Tuple
 from PIL import Image, ImageDraw
 from PyMultiDictionary import MultiDictionary
+from flask_restful.reqparse import FileStorage
 
 
 def ignore_word(word: str) -> bool:
@@ -82,3 +84,29 @@ def draw_missing_words(
         return b64encode(buffer.getvalue())
     except:
         return None
+
+
+def read_xml(xml: FileStorage) -> List[str]:
+    data = []
+    tree = ET.parse(xml)
+    root = tree.getroot()
+
+    # Para cada elemento encontrado procura valores que são do tipo 'text' e 'context-desc'
+    # Ignora os elementos da classe ImageView e ImageButton
+    for element in root.iter():
+        text_property = element.get('text')
+        element_class = element.get('class')
+        bounds = element.get('bounds')
+
+        if (
+            element_class == 'android.widget.ImageView'
+            or element_class == 'android.widget.ImageButton'
+            or bounds == '[0,0][0,0]'
+        ):
+            continue
+        if not text_property:
+            text_property = element.get('content-desc')
+        if text_property is not None and text_property != '':
+            data.append(text_property)
+
+    return data

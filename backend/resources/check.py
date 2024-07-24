@@ -4,6 +4,7 @@ import traceback
 import cv2
 import pytesseract
 import pytz
+import difflib
 import numpy as np
 from uuid import uuid4
 from PIL import Image
@@ -13,7 +14,7 @@ from flask_restful import Resource, request
 from flask_restful.reqparse import FileStorage
 from google.cloud import vision
 from google.oauth2.service_account import Credentials
-from utils.misc import check_if_word_is_correct, draw_missing_words
+from utils.misc import check_if_word_is_correct, draw_missing_words, read_xml
 from utils.exceptions import BackendError
 
 
@@ -25,7 +26,9 @@ class Check(Resource):
         except Exception as err:
             raise BackendError('Invalid Google Service Account Credentials: \n{}'.format(str(err)))
 
-    def opencv_process(self, screenshot: FileStorage, split_word: bool) -> Tuple[str, List[str], bytes | None]:
+    def opencv_process(
+        self, screenshot: FileStorage, split_word: bool, get_only_text: bool
+    ) -> Tuple[str, List[str], bytes | None] | Tuple[List[str], List[str]]:
         tesseract_path = os.environ.get('TESSERACT_PATH')
         if not tesseract_path:
             raise BackendError('Tesseract path is required')
@@ -51,6 +54,10 @@ class Check(Resource):
             cropped = img_np[y : y + height, x : x + width]
             text = pytesseract.image_to_string(cropped)
             word = text.strip().lower()
+            if get_only_text:
+                incorrect_words.append(word)
+                bounds.append([(x, y), (x + width, y), (x + width, y + height), (x, y + height)])
+                continue
             texts = word.split()
             if not split_word or len(texts) <= 1:
                 if check_if_word_is_correct(
@@ -76,11 +83,15 @@ class Check(Resource):
 
             bounds.append([(x, y), (x + width, y), (x + width, y + height), (x, y + height)])
 
-        drawn_image = draw_missing_words(Image.open(screenshot), bounds)
+        if not get_only_text:
+            drawn_image = draw_missing_words(Image.open(screenshot), bounds)
+            return screenshot.filename, incorrect_words, drawn_image
 
-        return screenshot.filename, incorrect_words, drawn_image
+        return incorrect_words, bounds
 
-    def google_process(self, screenshot: FileStorage, split_word: bool) -> Tuple[str, List[str], bytes | None]:
+    def google_process(
+        self, screenshot: FileStorage, split_word: bool, get_only_text: bool
+    ) -> Tuple[str, List[str], bytes | None] | Tuple[List[str], List[str]]:
         client = self.get_google_vision_client()
         content = screenshot.read()
         image = vision.Image(content=content)
@@ -96,6 +107,10 @@ class Check(Resource):
         bounds = []
         for text in texts:
             word = text.description.strip().lower()
+            if get_only_text:
+                incorrect_words.append(word)
+                bounds.append([(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices])
+                continue
             word_splitted = word.split()
             if not split_word or len(word_splitted) <= 1:
                 if check_if_word_is_correct(
@@ -121,40 +136,27 @@ class Check(Resource):
 
             bounds.append([(vertex.x, vertex.y) for vertex in text.bounding_poly.vertices])
 
-        drawn_image = draw_missing_words(Image.open(screenshot), bounds)
+        if not get_only_text:
+            drawn_image = draw_missing_words(Image.open(screenshot), bounds)
 
-        return screenshot.filename, incorrect_words, drawn_image
+            return screenshot.filename, incorrect_words, drawn_image
 
-    def process_screenshot(self, screenshot: FileStorage, split_word: bool = False) -> Tuple[str, List[str], bytes | None]:
+        return incorrect_words, bounds
+
+    def process_screenshot(
+        self, screenshot: FileStorage, split_word: bool = False, get_only_text: bool = False
+    ) -> Tuple[str, List[str], bytes | None] | Tuple[List[str], List[str]]:
         if not self.use_google_cloud_vision:
-            return self.opencv_process(screenshot, split_word)
+            return self.opencv_process(screenshot, split_word, get_only_text)
 
-        return self.google_process(screenshot, split_word)
+        return self.google_process(screenshot, split_word, get_only_text)
 
     def image_request(self) -> Tuple[Dict[str, Any], int]:
         screenshots = request.files.getlist('images')
         if not screenshots or not len(screenshots):
             raise BackendError('At least one image is required')
 
-        self.language: str = request.form.get('language', '')
-        if not self.language:
-            raise BackendError('Language is required')
-
-        self.use_google_cloud_vision: bool = json.loads(request.form.get('use_google_cloud_vision', 'true'))
-        self.google_service_account_credentials: Dict[str, str] | None = None
-        if self.use_google_cloud_vision:
-            try:
-                self.google_service_account_credentials: Dict[str, str] | None = json.loads(
-                    request.form.get('google_service_account_credentials', 'null')
-                )
-                if not self.google_service_account_credentials:
-                    raise BackendError('Google Service Account Credentials are required')
-            except:
-                raise BackendError('Invalid Google Service Account Credentials')
-
         dict_file: FileStorage | None = request.files.get('dict_file', None)
-        self.dict_usage_type: Literal['complement', 'replacement'] = request.form.get('dict_usage_type', 'complement')
-        self.ignore_words: List[str] = json.loads(request.form.get('ignore_words', '[]'))
         data = {
             'id': str(uuid4()),
             'time': datetime.now(timezone.utc)
@@ -169,10 +171,6 @@ class Check(Resource):
                 {'filename': dict_file.filename, 'usage_type': self.dict_usage_type} if dict_file else None
             ),
         }
-        self.custom_dict: List[str] | None = None
-        if dict_file:
-            lines = dict_file.read().splitlines()
-            self.custom_dict = [line.decode('utf-8').strip().lower() for line in lines]
 
         for screenshot in screenshots:
             filename, incorrect_words, drawn_image = self.process_screenshot(screenshot)
@@ -187,7 +185,60 @@ class Check(Resource):
         return data, 200
 
     def dump_request(self) -> Tuple[Dict[str, Any], int]:
-        return {'message': 'Not implemented yet'}, 501
+        image = request.files.get('image')
+        if not image:
+            raise BackendError('One image is required')
+
+        xml = request.files.get('xml')
+        if not xml:
+            raise BackendError('One xml file is required')
+
+        dict_file: FileStorage | None = request.files.get('dict_file', None)
+        data = {
+            'id': str(uuid4()),
+            'time': datetime.now(timezone.utc)
+            .astimezone(pytz.timezone('America/Recife'))
+            .strftime('%d/%m/%Y %H:%M:%S GMT%:z'),
+            'language': self.language,
+            'type': 'dump',
+            'files': [
+                {
+                    'filename': image.filename,
+                    'words': [],
+                    'image': None,
+                }
+            ],
+            'ignore_words': self.ignore_words,
+            'google_cloud_vision_used': self.use_google_cloud_vision,
+            'custom_dict_used': (
+                {'filename': dict_file.filename, 'usage_type': self.dict_usage_type} if dict_file else None
+            ),
+        }
+
+        words_xml = read_xml(xml)
+        words_ocr, bounds_ocr = self.process_screenshot(image, get_only_text=True)
+
+        def is_similar(word: str, target: str) -> bool:
+            return difflib.SequenceMatcher(None, word.lower(), target.lower()).ratio() > 0.85
+
+        incorrect_words = []
+        bounds = []
+        for word_xml in words_xml:
+            for index, word_ocr in enumerate(words_ocr):
+                if not is_similar(word_xml, word_ocr) or check_if_word_is_correct(
+                    word_xml, self.language, self.custom_dict, self.dict_usage_type, self.ignore_words
+                ):
+                    continue
+
+                incorrect_words.append(word_xml)
+                bounds.append(bounds_ocr[index])
+
+        drawn_image = draw_missing_words(Image.open(image), bounds)
+
+        data['files'][0]['words'] = incorrect_words
+        data['files'][0]['image'] = drawn_image.decode('utf-8') if drawn_image else None
+
+        return data, 200
 
     def post(self, request_type: str = '') -> Tuple[Dict[str, Any], int]:
         available_request_types = {'image': self.image_request, 'dump': self.dump_request}
@@ -195,6 +246,31 @@ class Check(Resource):
             return {'message': 'Invalid Request Type'}, 404
 
         try:
+            self.language: str = request.form.get('language', '')
+            if not self.language:
+                raise BackendError('Language is required')
+
+            self.use_google_cloud_vision: bool = json.loads(request.form.get('use_google_cloud_vision', 'true'))
+            self.google_service_account_credentials: Dict[str, str] | None = None
+            if self.use_google_cloud_vision:
+                try:
+                    self.google_service_account_credentials: Dict[str, str] | None = json.loads(
+                        request.form.get('google_service_account_credentials', 'null')
+                    )
+                    if not self.google_service_account_credentials:
+                        raise BackendError('Google Service Account Credentials are required')
+                except:
+                    raise BackendError('Invalid Google Service Account Credentials')
+
+            self.dict_usage_type: Literal['complement', 'replacement'] = request.form.get(
+                'dict_usage_type', 'complement'
+            )
+            self.ignore_words: List[str] = json.loads(request.form.get('ignore_words', '[]'))
+            dict_file: FileStorage | None = request.files.get('dict_file', None)
+            if dict_file:
+                lines = dict_file.read().splitlines()
+                self.custom_dict = [line.decode('utf-8').strip().lower() for line in lines]
+
             return available_request_types[request_type]()
         except BackendError as err:
             return {'message': str(err)}, 400

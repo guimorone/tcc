@@ -15,15 +15,13 @@ const Settings: FC = () => {
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
 	const navigation = {
-		'Image Processing': [
+		General: [
 			{
 				name: 'Google Cloud Vision',
 				Icon: RiGoogleLine,
 				description: 'Set if you want to use Google Cloud Vision API to check images with text detection.',
 				Element: GoogleCloudVision,
 			},
-		],
-		General: [
 			{
 				name: 'Dictionaries',
 				Icon: PiBooks,

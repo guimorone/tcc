@@ -34,6 +34,9 @@ const GoogleCloudVision: FC = () => {
 						Remember, the Google Cloud Vision is a powerful and precise service, regardless beign paid. Not using it can
 						bring some weird results, mostly if you are checking words with latin letters, such as "Ç".
 					</Switch.Description>
+					<Switch.Description as="span" className="text-sm text-gray-500">
+						In case you are using the Dump Processing, we recommend that you turn this off. Otherwise, use it.
+					</Switch.Description>
 				</span>
 				<Switch
 					checked={useGoogleCloudVision}
