@@ -26,7 +26,7 @@ const ImageProcesser: FC = () => {
 	const [fileFormData, setFileFormData] = useState<FormData | null>(null);
 	const [files, setFiles] = useState<File[] | null>(null);
 	const [previews, setPreviews] = useState<string[]>([]);
-	const sendImageMutations = useMutation<ResultType>({
+	const sendImagesMutation = useMutation<ResultType>({
 		mutationFn: async (): Promise<any> => {
 			const response = await httpRequest('check/image', 'POST', {
 				data: fileFormData,
@@ -68,31 +68,34 @@ const ImageProcesser: FC = () => {
 	}, [languageSelected, files]);
 
 	useEffect(() => {
-		if (sendImageMutations.isSuccess && sendImageMutations.data) {
+		if (sendImagesMutation.isSuccess && sendImagesMutation.data) {
 			setHistory(prevHistory => ({
 				...(prevHistory || {}),
-				[sendImageMutations.data.id]: sendImageMutations.data,
+				[sendImagesMutation.data.id]: sendImagesMutation.data,
 			}));
-			showSuccessToast('Image processed successfully\nRedirecting to results...');
-			setTimeout(navigate, 3000, `/${HISTORY}/${sendImageMutations.data.id}`);
-		} else if (sendImageMutations.isError)
-			showErrorToast((sendImageMutations.error as any)?.response?.data?.message || 'Error processing the image');
+			showSuccessToast(`${files?.length == 1 ? 'Image' : 'Images'} processed successfully\nRedirecting to results...`);
+			setTimeout(navigate, 3000, `/${HISTORY}/${sendImagesMutation.data.id}`);
+		} else if (sendImagesMutation.isError)
+			showErrorToast(
+				(sendImagesMutation.error as any)?.response?.data?.message ||
+					`Error processing the ${files?.length == 1 ? 'image' : 'images'}`
+			);
 	}, [
 		navigate,
-		sendImageMutations.isSuccess,
-		sendImageMutations.data,
-		sendImageMutations.isError,
-		sendImageMutations.error,
+		sendImagesMutation.isSuccess,
+		sendImagesMutation.data,
+		sendImagesMutation.isError,
+		sendImagesMutation.error,
 	]);
 
-	const handleSendImage = (): void => {
-		if (!fileFormData || sendImageMutations.isPending) return;
+	const handleSendImages = (): void => {
+		if (!fileFormData || sendImagesMutation.isPending) return;
 		if (useGoogleCloudVision && !googleServiceAccountCredentials) {
 			showWarningToast('Google Cloud Service Account Credentials are required if you enabled this service.');
 			return;
 		}
 
-		sendImageMutations.mutate();
+		sendImagesMutation.mutate();
 	};
 
 	const handleFilesUpload = (event: FormEvent<HTMLInputElement>): void =>
@@ -120,7 +123,7 @@ const ImageProcesser: FC = () => {
 					{files?.map((file, index) => (
 						<div
 							key={`preview-${file.name}-${index}`}
-							className={classNames(sendImageMutations.isPending && 'opacity-50', 'space-y-4')}
+							className={classNames(sendImagesMutation.isPending && 'opacity-50', 'space-y-4')}
 						>
 							<h3 className="text-white text-base font-semibold leading-6">Image {index + 1} Preview</h3>
 							<p className="text-sm text-gray-200">{file.name}</p>
@@ -129,11 +132,11 @@ const ImageProcesser: FC = () => {
 									<img
 										src={previews[index]}
 										className={classNames(
-											sendImageMutations.isPending && 'opacity-50',
+											sendImagesMutation.isPending && 'opacity-50',
 											'rounded m-auto max-h-32 sm:max-h-40 xl:max-h-48 2xl:max-h-56 h-full w-full object-scale-down object-center'
 										)}
 									/>
-									{sendImageMutations.isPending && (
+									{sendImagesMutation.isPending && (
 										<div className="absolute inset-0 z-10 space-y-4 bg-white/30 w-fit h-fit m-auto p-4 backdrop-blur-sm">
 											<Spinner size="lg" />
 											<p className="motion-safe:animate-pulse text-base text-gray-200">
@@ -159,22 +162,22 @@ const ImageProcesser: FC = () => {
 					}))}
 					selectedOption={languageSelected as any}
 					setSelectedOption={setLanguageSelected as any}
-					disabled={sendImageMutations.isPending}
+					disabled={sendImagesMutation.isPending}
 				/>
 				<div>
 					<input
-						disabled={sendImageMutations.isPending}
+						disabled={sendImagesMutation.isPending}
 						hidden
 						type="file"
-						id="image-uploader"
+						id="images-uploader"
 						accept="image/*"
 						onChange={handleFilesUpload}
 						multiple
 					/>
-					<label htmlFor="image-uploader" className="space-y-2">
+					<label htmlFor="images-uploader" className="space-y-2">
 						<div
 							className={classNames(
-								sendImageMutations.isPending
+								sendImagesMutation.isPending
 									? 'hover:cursor-not-allowed bg-gray-200 text-gray-600'
 									: 'bg-gray-900/10 hover:cursor-pointer hover:bg-gray-900/20 text-gray-900',
 								'inline-flex items-center gap-x-2 rounded-md px-3 py-2 shadow-sm'
@@ -183,14 +186,14 @@ const ImageProcesser: FC = () => {
 							<PhotoIcon className="h-4 w-auto" aria-hidden="true" />
 							<span className="text-sm font-semibold">Upload {files && files.length > 0 && 'new'} files</span>
 						</div>
-						<p className="text-xs leading-5 text-gray-400">Images only (JPG, JPEG, PNG, etc)</p>
+						<p className="text-xs leading-5 text-gray-400">Images file only (JPG, JPEG, PNG, etc)</p>
 					</label>
 				</div>
 				{fileFormData && (
 					<div>
 						<button
-							onClick={handleSendImage}
-							disabled={sendImageMutations.isPending}
+							onClick={handleSendImages}
+							disabled={sendImagesMutation.isPending}
 							className="inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-gray-200 disabled:text-gray-600 disabled:hover:cursor-wait"
 						>
 							<PaperAirplaneIcon className="h-4 w-auto" aria-hidden="true" />
