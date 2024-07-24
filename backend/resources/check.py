@@ -3,11 +3,11 @@ import json
 import traceback
 import cv2
 import pytesseract
+import pytz
 import numpy as np
 from uuid import uuid4
 from PIL import Image
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
 from typing import List, Dict, Tuple, Any, Literal
 from flask_restful import Resource, request
 from flask_restful.reqparse import FileStorage
@@ -25,7 +25,7 @@ class Check(Resource):
         except Exception as err:
             raise BackendError('Invalid Google Service Account Credentials: \n{}'.format(str(err)))
 
-    def opencv_process(self, screenshot: FileStorage, split_word: bool = False) -> Tuple[str, List[str], bytes | None]:
+    def opencv_process(self, screenshot: FileStorage, split_word: bool) -> Tuple[str, List[str], bytes | None]:
         tesseract_path = os.environ.get('TESSERACT_PATH')
         if not tesseract_path:
             raise BackendError('Tesseract path is required')
@@ -80,7 +80,7 @@ class Check(Resource):
 
         return screenshot.filename, incorrect_words, drawn_image
 
-    def google_process(self, screenshot: FileStorage, split_word: bool = False) -> Tuple[str, List[str], bytes | None]:
+    def google_process(self, screenshot: FileStorage, split_word: bool) -> Tuple[str, List[str], bytes | None]:
         client = self.get_google_vision_client()
         content = screenshot.read()
         image = vision.Image(content=content)
@@ -125,11 +125,11 @@ class Check(Resource):
 
         return screenshot.filename, incorrect_words, drawn_image
 
-    def process_screenshot(self, screenshot: FileStorage) -> Tuple[str, List[str], bytes | None]:
+    def process_screenshot(self, screenshot: FileStorage, split_word: bool = False) -> Tuple[str, List[str], bytes | None]:
         if not self.use_google_cloud_vision:
-            return self.opencv_process(screenshot)
+            return self.opencv_process(screenshot, split_word)
 
-        return self.google_process(screenshot)
+        return self.google_process(screenshot, split_word)
 
     def image_request(self) -> Tuple[Dict[str, Any], int]:
         screenshots = request.files.getlist('images')
@@ -158,7 +158,7 @@ class Check(Resource):
         data = {
             'id': str(uuid4()),
             'time': datetime.now(timezone.utc)
-            .astimezone(ZoneInfo('America/Recife'))
+            .astimezone(pytz.timezone('America/Recife'))
             .strftime('%d/%m/%Y %H:%M:%S GMT%:z'),
             'language': self.language,
             'type': 'image',

@@ -5,8 +5,8 @@ TCC
 ## Dependências
 
 - Python v3.12.3
-- pip v24.0
-- Node.js v20.15.1
+- pip v24.1.2
+- Node.js v20.16.0
 - npm v10.8.2
 
 ## Desenvolvimento local
@@ -18,6 +18,8 @@ Se possuir docker instalado, basta rodar o seguinte comando:
 ```sh
   docker compose up -d
 ```
+
+Acesse a aplicação em `http://localhost:5173`.
 
 ### Back-End
 
