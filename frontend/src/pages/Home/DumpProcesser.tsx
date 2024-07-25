@@ -6,7 +6,7 @@ import { useMutation } from '@tanstack/react-query';
 import { PhotoIcon, PaperAirplaneIcon } from '@heroicons/react/20/solid';
 import Select from '../../components/Select';
 import { httpRequest } from '../../services/api';
-import { classNames, showErrorToast, showSuccessToast } from '../../utils';
+import { classNames, showErrorToast, showSuccessToast, showWarningToast } from '../../utils';
 import { useTypedOutletContext } from '../../utils/hooks';
 import { LANGUAGES } from '../../constants';
 import { HISTORY } from '../../constants/paths';
@@ -95,6 +95,10 @@ const DumpProcesser: FC = () => {
 
 	const handleSendImage = (): void => {
 		if (!fileFormData || sendImageMutation.isPending) return;
+		if (useGoogleCloudVision && !googleServiceAccountCredentials) {
+			showWarningToast('Google Cloud Service Account Credentials are required if you enabled this service.');
+			return;
+		}
 
 		sendImageMutation.mutate();
 	};
