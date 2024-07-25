@@ -141,7 +141,7 @@ const DumpProcesser: FC = () => {
 				{xml && (
 					<div className="bg-gray-200 rounded relative max-h-40 sm:max-h-60 xl:max-h-72 2xl:max-h-96 w-full h-full overflow-hidden text-ellipsis">
 						<div className="absolute inset-x-0 top-1/2">
-							<h3 className="text-gray-900 text-base font-semibold leading-6">XML preview</h3>
+							<h3 className="text-gray-900 text-base font-semibold leading-6">XML Preview</h3>
 							<p className="text-sm text-gray-700">{xml.name}</p>
 						</div>
 						<p className="blur-sm opacity-70">{xmlPreview}</p>
