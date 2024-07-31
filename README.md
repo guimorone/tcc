@@ -13,7 +13,7 @@ TCC
 
 ### Docker
 
-Se possuir docker instalado, basta rodar o seguinte comando:
+Se possuir docker instalado, basta rodar o seguinte comando (lembre-se de criar o arquivo `frontend/.env` antes):
 
 ```sh
   docker compose up -d

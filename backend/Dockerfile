@@ -9,7 +9,7 @@ ENV PYTHONFAULTHANDLER=1 \
   PIP_DEFAULT_TIMEOUT=100 \
   TESSERACT_PATH="/usr/bin/tesseract"
 
-RUN apt-get update \
+RUN apt-get update --fix-missing \
   && apt-get -y install tesseract-ocr \
   && apt-get -y install ffmpeg libsm6 libxext6
 
