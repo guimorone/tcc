@@ -18,12 +18,11 @@ RUN pip install gunicorn
 
 WORKDIR /backend
 
-# Copy local code to the container image
-COPY requirements.txt ./
-
 # Install production dependencies
+COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
+# Copy local code to the container image
 COPY ./ ./
 
 EXPOSE 5000
