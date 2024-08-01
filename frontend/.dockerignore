@@ -1,4 +1,4 @@
-*.env.default
+*.env*
 .gitignore
 .git/
 node_modules/

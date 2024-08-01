@@ -5,6 +5,9 @@ WORKDIR /frontend
 ENV PATH /node_modules/.bin:$PATH
 COPY package*.json ./
 RUN npm install
+
+ENV VITE_APP_NAME=TCC \
+  VITE_BACKEND_URL=http://127.0.0.1:5000
 COPY ./ ./
 RUN npm run build
 
