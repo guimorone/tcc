@@ -24,7 +24,7 @@ const ImageProcesser: FC = () => {
 		googleServiceAccountCredentials,
 	} = useTypedOutletContext();
 	const [fileFormData, setFileFormData] = useState<FormData | null>(null);
-	const [files, setFiles] = useState<File[] | null>(null);
+	const [images, setImages] = useState<File[] | null>(null);
 	const [previews, setPreviews] = useState<string[]>([]);
 	const sendImagesMutation = useMutation<ResultType>({
 		mutationFn: async (): Promise<any> => {
@@ -38,12 +38,12 @@ const ImageProcesser: FC = () => {
 	});
 
 	useEffect(() => {
-		if (!languageSelected || !files || !files.length) return;
+		if (!languageSelected || !images || !images.length) return;
 
 		const formData = new FormData();
 		const newPreviews: string[] = [];
 		// Images
-		files.forEach(file => {
+		images.forEach(file => {
 			const objectUrl = URL.createObjectURL(file);
 			newPreviews.push(objectUrl);
 			formData.append('images', file);
@@ -65,7 +65,7 @@ const ImageProcesser: FC = () => {
 
 		// Release memory (Cleanup)
 		return () => newPreviews.forEach(URL.revokeObjectURL);
-	}, [languageSelected, files]);
+	}, [languageSelected, images]);
 
 	useEffect(() => {
 		if (sendImagesMutation.isSuccess && sendImagesMutation.data) {
@@ -73,12 +73,12 @@ const ImageProcesser: FC = () => {
 				...(prevHistory || {}),
 				[sendImagesMutation.data.id]: sendImagesMutation.data,
 			}));
-			showSuccessToast(`${files?.length == 1 ? 'Image' : 'Images'} processed successfully\nRedirecting to results...`);
+			showSuccessToast(`${images?.length == 1 ? 'Image' : 'Images'} processed successfully\nRedirecting to results...`);
 			setTimeout(navigate, 3000, `/${HISTORY}/${sendImagesMutation.data.id}`);
 		} else if (sendImagesMutation.isError)
 			showErrorToast(
 				(sendImagesMutation.error as any)?.response?.data?.message ||
-					`Error processing the ${files?.length == 1 ? 'image' : 'images'}`
+					`Error processing the ${images?.length == 1 ? 'image' : 'images'}`
 			);
 	}, [
 		navigate,
@@ -98,12 +98,12 @@ const ImageProcesser: FC = () => {
 		sendImagesMutation.mutate();
 	};
 
-	const handleFilesUpload = (event: FormEvent<HTMLInputElement>): void =>
-		setFiles(event.currentTarget.files ? Array.from(event.currentTarget.files) : []);
+	const handleImagesUpload = (event: FormEvent<HTMLInputElement>): void =>
+		setImages(event.currentTarget.files ? Array.from(event.currentTarget.files) : []);
 
 	return (
 		<>
-			{files && files.length > 0 && (
+			{images && images.length > 0 && (
 				<Carousel
 					leftControl={
 						<ChevronLeftIcon
@@ -120,7 +120,7 @@ const ImageProcesser: FC = () => {
 					pauseOnHover
 					className="relative h-56 sm:h-64 xl:h-80 2xl:h-96 bg-gray-900 rounded-md shadow w-full mx-auto"
 				>
-					{files?.map((file, index) => (
+					{images?.map((file, index) => (
 						<div
 							key={`preview-${file.name}-${index}`}
 							className={classNames(sendImagesMutation.isPending && 'opacity-50', 'space-y-4')}
@@ -140,7 +140,7 @@ const ImageProcesser: FC = () => {
 										<div className="absolute inset-0 z-10 space-y-4 bg-white/30 w-fit h-fit m-auto p-4 backdrop-blur-sm">
 											<Spinner size="lg" />
 											<p className="motion-safe:animate-pulse text-base text-gray-200">
-												The {files?.length === 1 ? 'image is' : 'images are'} being processed
+												The {images?.length === 1 ? 'image is' : 'images are'} being processed
 											</p>
 											<p className="motion-safe:animate-pulse text-sm text-gray-300 font-medium">
 												This may take a while...
@@ -171,7 +171,7 @@ const ImageProcesser: FC = () => {
 						type="file"
 						id="images-uploader"
 						accept="image/*"
-						onChange={handleFilesUpload}
+						onChange={handleImagesUpload}
 						multiple
 					/>
 					<label htmlFor="images-uploader" className="space-y-2">
@@ -184,7 +184,7 @@ const ImageProcesser: FC = () => {
 							)}
 						>
 							<PhotoIcon className="h-4 w-auto" aria-hidden="true" />
-							<span className="text-sm font-semibold">Upload {files && files.length > 0 && 'new'} files</span>
+							<span className="text-sm font-semibold">Upload {images && images.length > 0 && 'new'} images</span>
 						</div>
 						<p className="text-xs leading-5 text-gray-400">Images file only (JPG, JPEG, PNG, etc)</p>
 					</label>
@@ -197,7 +197,7 @@ const ImageProcesser: FC = () => {
 							className="inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-gray-200 disabled:text-gray-600 disabled:hover:cursor-wait"
 						>
 							<PaperAirplaneIcon className="h-4 w-auto" aria-hidden="true" />
-							<span className="text-sm font-semibold">Send {files?.length === 1 ? 'image' : 'images'}</span>
+							<span className="text-sm font-semibold">Send {images?.length === 1 ? 'image' : 'images'}</span>
 						</button>
 					</div>
 				)}

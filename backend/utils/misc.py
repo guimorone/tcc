@@ -1,4 +1,5 @@
 import re
+import difflib
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from base64 import b64encode
@@ -110,3 +111,7 @@ def read_xml(xml: FileStorage) -> List[str]:
             data.append(text_property)
 
     return data
+
+
+def is_similar(word: str, target: str) -> bool:
+    return difflib.SequenceMatcher(None, word.lower(), target.lower()).ratio() > 0.85

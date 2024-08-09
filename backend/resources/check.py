@@ -4,7 +4,6 @@ import traceback
 import cv2
 import pytesseract
 import pytz
-import difflib
 import numpy as np
 from uuid import uuid4
 from PIL import Image
@@ -14,7 +13,7 @@ from flask_restful import Resource, request
 from flask_restful.reqparse import FileStorage
 from google.cloud import vision
 from google.oauth2.service_account import Credentials
-from utils.misc import check_if_word_is_correct, draw_missing_words, read_xml
+from utils.misc import check_if_word_is_correct, draw_missing_words, read_xml, is_similar
 from utils.exceptions import BackendError
 
 
@@ -217,9 +216,6 @@ class Check(Resource):
 
         words_xml = read_xml(xml)
         words_ocr, bounds_ocr = self.process_screenshot(image, get_only_text=True)
-
-        def is_similar(word: str, target: str) -> bool:
-            return difflib.SequenceMatcher(None, word.lower(), target.lower()).ratio() > 0.85
 
         incorrect_words = []
         bounds = []
